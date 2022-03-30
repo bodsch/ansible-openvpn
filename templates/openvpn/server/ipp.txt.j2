@@ -1,0 +1,12 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+
+{% for user in openvpn_client_users %}
+  {% if user.static_ip is defined and
+        user.static_ip | string | length > 0 and
+        (user.static_ip | ipv4 or
+        user.static_ip | ipv6) and
+        user.state is defined and user.state == "present" %}
+{{ user.name }}, {{ user.static_ip }}
+  {% endif %}
+{% endfor %}

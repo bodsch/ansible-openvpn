@@ -1,0 +1,12 @@
+---
+
+- name: start and enable service
+  service:
+    name: "{{ openvpn_service_name }}"
+    state: "{{ openvpn_service.state | default('started') }}"
+    enabled: "{{ openvpn_service.enabled | default(true) | bool }}"
+  tags:
+    - openvpn
+    - start-enable-service
+
+...

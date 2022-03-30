@@ -1,0 +1,49 @@
+#jinja2: trim_blocks: True, lstrip_blocks: True
+# {{ ansible_managed }}
+
+{% if openvpn_server.external_ip is defined and
+      openvpn_server.external_ip | string | length > 0 and
+      (openvpn_server.external_ip | ipv4 or
+       openvpn_server.external_ip | ipv6) %}
+  {% set external_ip = openvpn_server.external_ip %}
+{% else %}
+  {% set external_ip = ansible_default_ipv4.address %}
+{% endif %}
+{% set _valid_attr = ['udp','tcp'] %}
+{% if not openvpn_server.proto in _valid_attr %}
+  {% set openvpn_server.proto = 'udp' %}
+{% endif %}
+remote {{ external_ip }} {{ openvpn_server.port }} {{ openvpn_server.proto }}
+
+client
+proto tcp-client
+dev {{ openvpn_server.device }}
+remote-cert-tls server
+key-direction 1
+cipher AES-256-CBC
+verb 2
+mute 20
+keepalive 10 120
+comp-lzo
+mssfix 1360
+tun-mtu 1347
+persist-key
+persist-tun
+float
+resolv-retry infinite
+nobind
+
+<ca>
+{{ openvpn_ca_cert.content | b64decode }}</ca>
+
+<cert>{% raw %}
+{{ cert }}
+{% endraw %}</cert>
+
+<key>{% raw %}
+{{ key }}
+{% endraw %}</key>
+
+<tls-auth>
+{{ openvpn_ta_key.content | b64decode | regex_replace('(?m)^#.*?\n', '') }}</tls-auth>
+

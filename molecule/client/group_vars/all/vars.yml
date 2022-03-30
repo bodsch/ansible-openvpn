@@ -1,0 +1,16 @@
+---
+
+
+openvpn_type: client
+
+openvpn_defaults_clients:
+  - name: "molecule"
+    remote: "test.vpn.org"
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+
+...
+

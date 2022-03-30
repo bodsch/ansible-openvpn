@@ -1,0 +1,59 @@
+---
+
+- name: include OS specific configuration
+  include_vars: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      paths:
+        - "vars"
+      files:
+        # eg. debian-10 / ubuntu-20 / centos-8 / oraclelinux-8
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
+        # eg. archlinux-systemd / archlinux-openrc
+        - "{{ ansible_distribution | lower }}-{{ ansible_service_mgr | lower }}.yml"
+        # eg. debian / ubuntu / centos / oraclelinux
+        - "{{ ansible_distribution | lower }}.yml"
+        # eg. redhat / debian
+        - "{{ ansible_os_family | lower }}.yml"
+        - default.yml
+      skip: true
+
+- name: detect docker environment
+  set_fact:
+    is_docker_guest: "{{
+      ansible_virtualization_role | default('host') == 'guest' and
+      ansible_virtualization_type | default('none') == 'docker' }}"
+
+- name: update package cache
+  package:
+    update_cache: true
+
+- name: install dependencies
+  package:
+    name: "{{ openvpn_dependencies }}"
+    state: present
+
+- name: gathering facts now
+  setup:
+
+- name: merge openvpn logging configuration between defaults and custom
+  set_fact:
+    openvpn_logging: "{{ openvpn_defaults_logging |
+      combine( openvpn_logging, recursive=True ) }}"
+
+- name: merge openvpn easyrsa configuration between defaults and custom
+  set_fact:
+    openvpn_easyrsa: "{{ openvpn_defaults_easyrsa |
+      combine( openvpn_easyrsa, recursive=True ) }}"
+
+- name: merge openvpn certificate configuration between defaults and custom
+  set_fact:
+    openvpn_certificate: "{{ openvpn_defaults_certificate |
+      combine( openvpn_certificate, recursive=True ) }}"
+
+- name: merge openvpn server configuration between defaults and custom
+  set_fact:
+    openvpn_server: "{{ openvpn_defaults_server |
+      combine( openvpn_server, recursive=True ) }}"
+
+...

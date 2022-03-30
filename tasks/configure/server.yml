@@ -1,0 +1,155 @@
+---
+
+- name: create openvpn server directory
+  file:
+    path: '{{ openvpn_directory }}/server'
+    state: directory
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    mode: 0755
+  tags:
+    - openvpn
+    - openvpn_setup
+
+- name: create openvpn log directory
+  file:
+    state: directory
+    path: '{{ openvpn_logging.directory }}'
+    mode: 0755
+  tags:
+    - setup
+    - openvpn
+
+# ------------------------------------------------------------------------------------------------
+
+- name: create easy-rsa configuration file
+  template:
+    src: easy-rsa/vars.j2
+    dest: '{{ openvpn_easyrsa.directory }}/vars'
+    mode: 0644
+    owner: root
+    group: root
+
+- name: initialize easy-rsa PKI
+  easyrsa:
+    state: init-pki
+  register: _init_result
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    creates: '{{ openvpn_easyrsa.directory }}/pki'
+
+- name: build CA certifikate & key
+  easyrsa:
+    state: build-ca
+    req_cn_ca: "{{ openvpn_certificate.req_cn_ca }}"
+    keysize: 4096
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    creates: '{{ openvpn_easyrsa.directory }}/pki/ca.crt'
+  register: openvpn_ca_created
+
+- name: create initial CRL
+  easyrsa:
+    state: gen-crl
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    creates: '{{ openvpn_easyrsa.directory }}/pki/crl.pem'
+
+- name: create DH parameters (this is going to take a long time)
+  easyrsa:
+    state: gen-dh
+    keysize: "{{ openvpn_diffie_hellman_keysize }}"
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    creates: '{{ openvpn_easyrsa.directory }}/pki/dh.pem'
+
+- name: request openvpn server certificate
+  easyrsa:
+    state: gen-req
+    req_cn_server: '{{ openvpn_certificate.req_cn_server }}'
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    creates: '{{ openvpn_easyrsa.directory }}/pki/reqs/{{ openvpn_certificate.req_cn_server }}.req'
+  register: server_cert_request
+
+- name: sign openvpn server certificate
+  easyrsa:
+    state: sign-req
+    req_cn_server: '{{ openvpn_certificate.req_cn_server }}'
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    creates: '{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_certificate.req_cn_server }}.crt'
+  when: server_cert_request is succeeded
+
+# ------------------------------------------------------------------------------------------------
+
+- name: copy CA certificate to openvpn server directory
+  copy:
+    src: '{{ openvpn_easyrsa.directory }}/pki/ca.crt'
+    dest: '{{ openvpn_directory }}/server/'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    remote_src: true
+    mode: '0644'
+
+- name: copy server certificate to openvpn server directory
+  copy:
+    src: '{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_certificate.req_cn_server }}.crt'
+    dest: '{{ openvpn_directory }}/server/'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    remote_src: true
+    mode: '0644'
+
+- name: copy server key to openvpn server directory
+  copy:
+    src: '{{ openvpn_easyrsa.directory }}/pki/private/{{ openvpn_certificate.req_cn_server }}.key'
+    dest: '{{ openvpn_directory }}/server/'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    remote_src: true
+    mode: 0600
+
+- name: copy DH parameter file to openvpn server directory
+  copy:
+    src: '{{ openvpn_easyrsa.directory }}/pki/dh.pem'
+    dest: '{{ openvpn_directory }}/server/dh{{ openvpn_diffie_hellman_keysize }}.pem'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    remote_src: true
+    mode: '0644'
+
+- name: generate a tls-auth key
+  openvpn:
+    state: genkey
+    secret: "{{ openvpn_directory }}/server/ta.key"
+  args:
+    creates: '{{ openvpn_directory }}/server/ta.key'
+
+# ------------------------------------------------------------------------------------------------
+
+- name: create openvpn configuration file (server.conf)
+  template:
+    src: openvpn/server/server.conf.j2
+    dest: "{{ openvpn_directory }}/server/server.conf"
+    mode: '0644'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+  notify:
+    - restart openvpn-server
+
+- name: create link for openrc init
+  file:
+    src: "{{ openvpn_directory }}/server/server.conf"
+    dest: "{{ openvpn_directory }}/openvpn.conf"
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    state: link
+    force: true
+  when:
+    - ansible_distribution | lower == "archlinux"
+    - ansible_service_mgr | lower == "openrc"
+  notify:
+    - restart openvpn-server
+
+...

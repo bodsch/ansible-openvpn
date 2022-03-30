@@ -1,0 +1,28 @@
+---
+
+- name: install package
+  package:
+    name: "{{ openvpn_packages }}"
+    state: present
+  tags:
+    - openvpn
+    - openvpn_install
+
+- name: handle easy-rsa
+  block:
+    - name: link easy-rsa into /etc
+      file:
+        state: link
+        src: /usr/share/easy-rsa
+        dest: "{{openvpn_easyrsa.directory }}"
+
+    - name: link easyrsa binary into /bin
+      file:
+        state: link
+        src: "{{openvpn_easyrsa.directory }}/easyrsa"
+        dest: /bin/easyrsa
+
+  when:
+    - ansible_distribution | lower == "debian"
+
+...

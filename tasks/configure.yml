@@ -1,0 +1,20 @@
+---
+
+- name: openvpn server
+  block:
+    - name: configure openvpn server
+      include_tasks: configure/server.yml
+
+    - name: configure openvpn client users
+      include_tasks: configure/client_users.yml
+  when:
+    - openvpn_type == "server"
+
+- name: openvpn client
+  block:
+    - name: configure openvpn client
+      include_tasks: configure/client.yml
+  when:
+    - openvpn_type == "client"
+
+...

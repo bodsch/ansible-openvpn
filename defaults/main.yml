@@ -1,21 +1,5 @@
-# Ansible Role:  `openvpn`
+---
 
-Ansible role to install and configure openvpn server.
-
-## Requirements & Dependencies
-
-The ipv4 filter requires python's `netaddr` be installed on the ansible controller.
-
-
-### Operating systems
-
-Tested on
-
-* Arch Linux
-
-## configuration
-
-```yaml
 openvpn_directory: /etc/openvpn
 
 openvpn_diffie_hellman_keysize: 2048
@@ -68,6 +52,7 @@ openvpn_server: {}
 #   # "tap" will create an ethernet tunnel.
 #   device: tun
 #   max_clients: 10
+
 openvpn_client: {}
 
 # Use distinct subnets for every VPN server, if client IPs are
@@ -92,26 +77,5 @@ openvpn_client_users: []
 #   - name: darillium.matrix.lan
 #     state: absent
 #     static_ip: 10.8.3.10
-```
 
-
-## Contribution
-
-Please read [Contribution](CONTRIBUTING.md)
-
-## Development,  Branches (Git Tags)
-
-The `master` Branch is my *Working Horse* includes the "latest, hot shit" and can be complete broken!
-
-If you want to use something stable, please use a [Tagged Version](https://gitlab.com/bodsch/ansible-openvpn/-/tags)!
-
-
-## Author
-
-- Bodo Schulz
-
-## License
-
-[Apache](LICENSE)
-
-`FREE SOFTWARE, HELL YEAH!`
+...

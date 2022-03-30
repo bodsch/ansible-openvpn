@@ -1,0 +1,31 @@
+---
+
+galaxy_info:
+  role_name: openvpn
+  namespace: bodsch
+  author: Bodo Schulz
+  description: OpenVPN server role
+  license: Apache
+  min_ansible_version: 2.12
+  platforms:
+    - name: ArchLinux
+    - name: Ubuntu
+      versions:
+        # 18.04
+        - bionic
+        # 20.04
+        - focal
+    - name: Debian
+      versions:
+        # 10
+        - buster
+        # 11
+        - bullseye
+  galaxy_tags:
+    - development
+    - system
+    - openvpn
+
+dependencies: []
+
+...

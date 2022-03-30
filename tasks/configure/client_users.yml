@@ -1,0 +1,56 @@
+---
+
+- name: get CA certificate
+  slurp:
+    src: '{{ openvpn_easyrsa.directory }}/pki/ca.crt'
+  register: openvpn_ca_cert
+
+- name: get TA key
+  slurp:
+    src: '{{ openvpn_directory }}/server/ta.key'
+  register: openvpn_ta_key
+
+- name: create openvpn client configuration template
+  template:
+    src: openvpn/client_users/client.ovpn.template.j2
+    dest: '{{ openvpn_directory }}/client.ovpn.template'
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: create target directory for generated client certificates
+  file:
+    state: directory
+    path: /root/vpn-configs
+    mode: 0700
+
+- name: create or revoke client certificate
+  openvpn_user:
+    state: "{{ item.state }}"
+    username: "{{ item.name }}"
+    destination_directory: /root/vpn-configs
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    # creates: '{{ openvpn_easyrsa.directory }}/pki/reqs/{{ item }}.req'
+  loop:
+    "{{ openvpn_client_users }}"
+  loop_control:
+    label: "{{ item.name }}, state: {{ item.state }}"
+  when:
+    - openvpn_client_users is defined
+    - openvpn_client_users | count > 0
+
+- name: define static client IPs
+  template:
+    src: openvpn/server/ipp.txt.j2
+    dest: /etc/openvpn/ipp.txt
+    mode: 0644
+  loop:
+    "{{ openvpn_client_users }}"
+  loop_control:
+    label: "{{ item.name }}, state: {{ item.state }}"
+  when:
+    - openvpn_client_users is defined
+    - openvpn_client_users | count > 0
+
+...

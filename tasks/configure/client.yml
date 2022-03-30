@@ -1,0 +1,21 @@
+---
+
+- name: create openvpn log directory
+  file:
+    state: directory
+    path: '{{ openvpn_logging.directory }}'
+    mode: 0755
+  tags:
+    - setup
+    - openvpn
+
+- name: create client key directory
+  file:
+    state: directory
+    path: '{{ openvpn_directory }}/keys'
+    mode: 0755
+  tags:
+    - setup
+    - openvpn
+
+...

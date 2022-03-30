@@ -1,0 +1,6 @@
+---
+
+openvpn_dependencies:
+  - easy-rsa
+
+...

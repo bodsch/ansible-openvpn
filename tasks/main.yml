@@ -1,0 +1,15 @@
+---
+
+- name: preparement
+  include_tasks: prepare.yml
+
+- name: install
+  include_tasks: install.yml
+
+- name: configure
+  include_tasks: configure.yml
+
+- name: service
+  include_tasks: service.yml
+
+...

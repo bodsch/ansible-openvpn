@@ -1,0 +1,11 @@
+---
+
+openvpn_type: server
+
+openvpn_client_users:
+  - name: molecule
+    state: present
+    static_ip: 10.8.3.10
+
+...
+
