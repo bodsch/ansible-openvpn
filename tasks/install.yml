@@ -14,12 +14,12 @@
       file:
         state: link
         src: /usr/share/easy-rsa
-        dest: "{{openvpn_easyrsa.directory }}"
+        dest: "{{ openvpn_easyrsa.directory }}"
 
     - name: link easyrsa binary into /bin
       file:
         state: link
-        src: "{{openvpn_easyrsa.directory }}/easyrsa"
+        src: "{{ openvpn_easyrsa.directory }}/easyrsa"
         dest: /bin/easyrsa
 
   when:

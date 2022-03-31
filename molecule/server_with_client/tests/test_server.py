@@ -10,7 +10,7 @@ import os
 
 import testinfra.utils.ansible_runner
 
-HOST = 'all'
+HOST = 'server'
 
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
     os.environ['MOLECULE_INVENTORY_FILE']).get_hosts(HOST)
@@ -52,6 +52,12 @@ def read_ansible_yaml(file_name, role_name):
     return "file={} name={}".format(read_file, role_name)
 
 
+def merge_two_dicts(x, y):
+    z = x.copy()   # start with keys and values of x
+    z.update(y)    # modifies z with keys and values of y
+    return z
+
+
 @pytest.fixture()
 def get_vars(host):
     """
@@ -77,7 +83,7 @@ def get_vars(host):
     file_defaults      = read_ansible_yaml("{}/defaults/main".format(base_dir), "role_defaults")
     file_vars          = read_ansible_yaml("{}/vars/main".format(base_dir), "role_vars")
     file_distribution  = read_ansible_yaml("{}/vars/{}".format(base_dir, os), "role_distribution")
-    file_molecule      = read_ansible_yaml("{}/group_vars/all/vars".format(molecule_dir), "test_vars")
+    file_molecule      = read_ansible_yaml("{}/group_vars/openvpn_server/vars".format(molecule_dir), "test_vars")
     # file_host_molecule = read_ansible_yaml("{}/host_vars/{}/vars".format(base_dir, HOST), "host_vars")
 
     defaults_vars      = host.ansible("include_vars", file_defaults).get("ansible_facts").get("role_defaults")
@@ -102,10 +108,46 @@ def test_files(host, get_vars):
     """
     """
     files = [
-        "/bin/easyrsa"
+        "/etc/openvpn/server/server.conf",
+        "/etc/openvpn/keys/server/ca.crt",
+        "/etc/openvpn/keys/server/dh2048.pem",
+        "/etc/openvpn/keys/server/server.crt",
+        "/etc/openvpn/keys/server/server.key",
+        "/etc/openvpn/keys/server/ta.key",
     ]
 
     for file in files:
         f = host.file(file)
         assert f.exists
         assert f.is_file
+
+
+def test_service(host, get_vars):
+    """
+    """
+    service = host.service(
+        get_vars.get("openvpn_service_name")
+    )
+    assert service.is_enabled
+    assert service.is_running
+
+
+def test_open_port(host, get_vars):
+    """
+    """
+    for i in host.socket.get_listening_sockets():
+        print(i)
+
+    # pp_json(get_vars)
+
+    _defaults = get_vars.get("openvpn_defaults_server")
+    _configure = get_vars.get("openvpn_server")
+    data = merge_two_dicts( _defaults, _configure )
+
+    port = data.get("port")
+
+    service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
+    assert service.is_listening
+
+    #service = host.socket("udp://{0}:{1}".format("0.0.0.0", "123"))
+    #assert service.is_listening

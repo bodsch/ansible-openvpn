@@ -2,6 +2,7 @@
 - name: converge
   hosts: all
   any_errors_fatal: true
+  gather_facts: true
 
   environment:
     NETRC: ''
