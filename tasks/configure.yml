@@ -1,5 +1,27 @@
 ---
 
+- name: create openvpn log directory
+  file:
+    state: directory
+    path: '{{ openvpn_logging.directory }}'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    mode: 0775
+  tags:
+    - setup
+    - openvpn
+
+- name: create client key directory
+  file:
+    state: directory
+    path: '{{ openvpn_directory }}/keys'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    mode: 0755
+  tags:
+    - setup
+    - openvpn
+
 - name: openvpn server
   block:
     - name: configure openvpn server
@@ -16,5 +38,13 @@
       include_tasks: configure/client.yml
   when:
     - openvpn_type == "client"
+
+- name: change rights for created files
+  file:
+    state: directory
+    path: "{{ openvpn_directory }}/keys"
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    recurse: true
 
 ...

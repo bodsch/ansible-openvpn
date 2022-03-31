@@ -1,0 +1,86 @@
+---
+dependency:
+  name: galaxy
+
+driver:
+  name: docker
+
+lint: |
+  set -e
+  yamllint .
+  ansible-lint .
+  flake8 .
+
+platforms:
+  - name: server
+    image: "diodonfrost/ansible-${DISTRIBUTION:-debian:11}"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    docker_host: "${DOCKER_HOST:-unix://run/docker.sock}"
+    privileged: true
+    pre_build_image: true
+    capabilities:
+      - SYS_TIME
+      - SYS_ADMIN
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - openvpn
+      - openvpn_server
+    docker_networks:
+      - name: openvpn
+        ipam_config:
+          - subnet: "172.10.0.0/24"
+            gateway: "172.10.0.254"
+    networks:
+      - name: openvpn
+        ipv4_address: "172.10.0.2"
+
+  - name: client
+    image: "diodonfrost/ansible-${DISTRIBUTION:-debian:11}"
+    command: ${MOLECULE_DOCKER_COMMAND:-""}
+    docker_host: "${DOCKER_HOST:-unix://run/docker.sock}"
+    privileged: true
+    pre_build_image: true
+    capabilities:
+      - SYS_TIME
+      - SYS_ADMIN
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    groups:
+      - openvpn
+      - openvpn_client
+    networks:
+      - name: openvpn
+        ipv4_address: "172.10.0.10"
+
+provisioner:
+  name: ansible
+  ansible_args:
+    - --diff
+    # - -vv
+  config_options:
+    defaults:
+      deprecation_warnings: True
+      stdout_callback: yaml
+      callbacks_enabled: profile_tasks
+
+scenario:
+  test_sequence:
+    - lint
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
+
+verifier:
+  name: testinfra

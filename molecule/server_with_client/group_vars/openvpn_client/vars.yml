@@ -1,0 +1,23 @@
+---
+
+openvpn_type: client
+
+openvpn_logging:
+  directory: /var/log/openvpn
+  file: molecule.log
+  status: status.log
+  verbosity: 4
+  mute: 10
+  append: true
+
+openvpn_clients:
+  - name: "molecule"
+    remote: server
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: molecule.crt
+    key: molecule.key
+...

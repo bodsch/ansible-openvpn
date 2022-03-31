@@ -1,0 +1,151 @@
+---
+
+- name: redefine service name
+  set_fact:
+    openvpn_service_name: "openvpn-client@{{ client.name }}"
+
+- name: create client key directory
+  file:
+    state: directory
+    path: '{{ openvpn_directory }}/keys/{{ client.name }}/'
+    mode: 0755
+  tags:
+    - setup
+    - openvpn
+
+- name: detect client certificate file
+  stat:
+    path: "{{ openvpn_directory }}/keys/{{ client.name }}//{{ client.name }}.crt"
+    checksum_algorithm: sha256
+  register: _client_checksum
+
+- name: detect server certificate file
+  delegate_to: "{{ client.remote }}"
+  stat:
+    path: "{{ openvpn_easyrsa.directory }}/pki/issued/{{ client.name }}.crt"
+    checksum_algorithm: sha256
+  register: _server_checksum
+
+- name: compare checksums
+  set_fact:
+    certifivate_equal: "{{
+      _client_checksum.stat.checksum | default('xx_client') == _server_checksum.stat.checksum | default('xx_server')
+    }}"
+
+- name: export client certificate from openvpn server
+  delegate_to: "{{ client.remote }}"
+  block:
+    - name: create export directory
+      file:
+        state: directory
+        path: /tmp/openvpn-export
+        mode: 0700
+
+    - name: mount tmpfs to export
+      mount:
+        name: /tmp/openvpn-export
+        src: tmpfs
+        fstype: tmpfs
+        opts: nodev,nosuid,size=1M
+        state: mounted
+
+    - name: create export directory for client
+      file:
+        state: directory
+        path: "/tmp/openvpn-export/{{ client.name }}"
+        mode: 0700
+
+    - name: copy files for export
+      copy:
+        remote_src: true
+        src: "{{ file }}"
+        dest: "/tmp/openvpn-export/{{ client.name }}/"
+      loop:
+        - "{{ openvpn_directory }}/keys/server/ta.key"
+        - "{{ openvpn_easyrsa.directory }}/pki/private/{{ client.name }}.key"
+        - "{{ openvpn_easyrsa.directory }}/pki/issued/{{ client.name }}.crt"
+        - "{{ openvpn_easyrsa.directory }}/pki/ca.crt"
+      loop_control:
+        loop_var: file
+
+    - name: create archive with certificate files
+      delegate_to: "{{ client.remote }}"
+      archive:
+        format: gz
+        path: "/tmp/openvpn-export/{{ client.name }}"
+        dest: "/root/vpn-configs/{{ client.name }}.tar.gz"
+
+    # - name: define checksum
+    #   stat:
+    #     path: "/tmp/openvpn-export/{{ client.name }}/{{ client.name }}.crt"
+    #     checksum_algorithm: sha256
+    #   register: _checksum
+    #
+    # - name: d
+    #   debug:
+    #     msg: "{{ _checksum }}"
+
+    - name: umount export tmpfs
+      mount:
+        name: /tmp/openvpn-export
+        src: tmpfs
+        state: unmounted
+
+    - name: copy created certificates from openvpn server
+      delegate_to: "{{ client.remote }}"
+      fetch:
+        src: "/root/vpn-configs/{{ client.name }}.tar.gz"
+        dest: "{{ openvpn_local_tmp_directory }}/{{ client.name }}.tar.gz"
+        flat: true
+  when:
+    - not _client_checksum.stat.exists or not certifivate_equal
+
+- name: detect certificate archive on ansible controller
+  delegate_to: localhost
+  stat:
+    path: "{{ openvpn_local_tmp_directory }}/{{ client.name }}.tar.gz"
+  register: _certificate_archive
+
+- name: d
+  debug:
+    msg:
+      - "{{ _certificate_archive }}"
+      - "{{ certifivate_equal }}"
+
+- name: unarchive certificates
+  unarchive:
+    src: "{{ openvpn_local_tmp_directory }}/{{ client.name }}.tar.gz"
+    dest: "{{ openvpn_directory }}/keys/"
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+  when:
+    - _certificate_archive.stat.exists
+    - not certifivate_equal
+
+- name: fix rights for openvpn key file
+  file:
+    path: "{{ openvpn_directory }}/keys/{{ client.name }}/{{ client.name }}.key"
+    mode: 0600
+
+- name: create openvpn client config
+  template:
+    src: openvpn/clients/client.conf.j2
+    dest: "{{ openvpn_directory }}/client/{{ client.name }}.conf"
+  notify:
+    - restart openvpn-client
+
+- name: create link for openrc init
+  file:
+    src: "{{ openvpn_directory }}/client/{{ client.name }}.conf"
+    dest: "{{ openvpn_directory }}/{{ client.name }}.conf"
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    state: link
+    force: true
+  when:
+    - ansible_distribution | lower == "archlinux"
+    - ansible_service_mgr | lower == "openrc"
+  notify:
+    - restart openvpn-server
+
+...

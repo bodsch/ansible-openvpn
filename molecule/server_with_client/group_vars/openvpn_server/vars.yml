@@ -1,0 +1,9 @@
+---
+
+openvpn_type: server
+
+openvpn_server:
+  user: "{{ openvpn_owner }}"
+  group: "{{ openvpn_group }}"
+
+...

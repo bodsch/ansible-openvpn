@@ -11,10 +11,12 @@
     - openvpn
     - openvpn_setup
 
-- name: create openvpn log directory
+- name: create server key directory
   file:
     state: directory
-    path: '{{ openvpn_logging.directory }}'
+    path: '{{ openvpn_directory }}/keys/server'
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
     mode: 0755
   tags:
     - setup
@@ -86,7 +88,7 @@
 - name: copy CA certificate to openvpn server directory
   copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/ca.crt'
-    dest: '{{ openvpn_directory }}/server/'
+    dest: '{{ openvpn_directory }}/keys/server/'
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
     remote_src: true
@@ -95,7 +97,7 @@
 - name: copy server certificate to openvpn server directory
   copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_certificate.req_cn_server }}.crt'
-    dest: '{{ openvpn_directory }}/server/'
+    dest: '{{ openvpn_directory }}/keys/server/'
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
     remote_src: true
@@ -104,7 +106,7 @@
 - name: copy server key to openvpn server directory
   copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/private/{{ openvpn_certificate.req_cn_server }}.key'
-    dest: '{{ openvpn_directory }}/server/'
+    dest: '{{ openvpn_directory }}/keys/server/'
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
     remote_src: true
@@ -113,7 +115,7 @@
 - name: copy DH parameter file to openvpn server directory
   copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/dh.pem'
-    dest: '{{ openvpn_directory }}/server/dh{{ openvpn_diffie_hellman_keysize }}.pem'
+    dest: '{{ openvpn_directory }}/keys/server/dh{{ openvpn_diffie_hellman_keysize }}.pem'
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
     remote_src: true
@@ -122,9 +124,26 @@
 - name: generate a tls-auth key
   openvpn:
     state: genkey
-    secret: "{{ openvpn_directory }}/server/ta.key"
+    secret: "{{ openvpn_directory }}/keys/server/ta.key"
   args:
-    creates: '{{ openvpn_directory }}/server/ta.key'
+    creates: '{{ openvpn_directory }}/keys/server/ta.key'
+
+- name: change rights for pki
+  file:
+    state: directory
+    path: "{{ openvpn_easyrsa.directory }}/pki"
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    mode: 0770
+    # recurse: true
+
+- name: change rights for crl.pem
+  file:
+    # state: file
+    path: "{{ openvpn_easyrsa.directory }}/pki/crl.pem"
+    owner: "{{ openvpn_owner }}"
+    group: "{{ openvpn_group }}"
+    mode: 0640
 
 # ------------------------------------------------------------------------------------------------
 
@@ -135,6 +154,7 @@
     mode: '0644'
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
+    backup: true
   notify:
     - restart openvpn-server
 

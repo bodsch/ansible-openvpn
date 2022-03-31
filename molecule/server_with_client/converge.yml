@@ -1,7 +1,7 @@
 ---
 - name: converge
   hosts: all
-  any_errors_fatal: false
+  any_errors_fatal: true
 
   environment:
     NETRC: ''

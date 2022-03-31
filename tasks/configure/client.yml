@@ -1,21 +1,24 @@
 ---
 
-- name: create openvpn log directory
+- name: create temporary transfer directory on ansible controller
+  become: false
+  delegate_to: localhost
   file:
+    path: "{{ openvpn_local_tmp_directory }}"
     state: directory
-    path: '{{ openvpn_logging.directory }}'
-    mode: 0755
-  tags:
-    - setup
-    - openvpn
+    mode: 0750
 
-- name: create client key directory
-  file:
-    state: directory
-    path: '{{ openvpn_directory }}/keys'
-    mode: 0755
-  tags:
-    - setup
-    - openvpn
+- name: create openvpn client configs
+  include_tasks: configure/client_instances.yml
+  loop: "{{ openvpn_clients }}"
+  loop_control:
+    index_var: index
+    loop_var: client
+    label: "client: {{ client.name }}"
+  when:
+    - openvpn_clients is defined
+    - openvpn_clients | count > 0
+    - client.name is defined
+    - client.name | string | length > 0
 
 ...

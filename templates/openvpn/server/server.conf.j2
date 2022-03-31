@@ -6,7 +6,7 @@
       openvpn_server.listen_ip | string | length > 0 and
       (openvpn_server.listen_ip | ipv4 or
       openvpn_server.listen_ip | ipv6) %}
-local {{ openvpn_server.listen_ip }}
+local         {{ openvpn_server.listen_ip }}
 {% endif %}
 
 # Which TCP/UDP port should OpenVPN listen on?
@@ -14,28 +14,28 @@ local {{ openvpn_server.listen_ip }}
 # on the same machine, use a different port
 # number for each one.  You will need to
 # open up this port on your firewall.
-port {{ openvpn_server.port }}
+port          {{ openvpn_server.port }}
 
 {% set _valid_attr = ['udp','tcp'] %}
 {% if not openvpn_server.proto in _valid_attr %}
   {% set openvpn_server.proto = 'udp' %}
 {% endif %}
-proto {{ openvpn_server.proto }}
+proto         {{ openvpn_server.proto }}
 
 {% set _valid_attr = ['tun','tap'] %}
 {% if not openvpn_server.device in _valid_attr %}
   {% set openvpn_server.device = 'tun' %}
 {% endif %}
-dev {{ openvpn_server.device }}
+dev           {{ openvpn_server.device }}
 
-ca      {{ openvpn_directory }}/server/ca.crt
-cert    {{ openvpn_directory }}/server/{{ openvpn_certificate.req_cn_server }}.crt
-key     {{ openvpn_directory }}/server/{{ openvpn_certificate.req_cn_server }}.key
+ca            {{ openvpn_directory }}/keys/server/ca.crt
+cert          {{ openvpn_directory }}/keys/server/{{ openvpn_certificate.req_cn_server }}.crt
+key           {{ openvpn_directory }}/keys/server/{{ openvpn_certificate.req_cn_server }}.key
 
 # Diffie hellman parameters.
 # Generate your own with:
 #   openssl dhparam -out dh2048.pem 2048
-dh      {{ openvpn_directory }}/server/dh{{ openvpn_diffie_hellman_keysize }}.pem
+dh            {{ openvpn_directory }}/keys/server/dh{{ openvpn_diffie_hellman_keysize }}.pem
 
 # Network topology
 # Should be subnet (addressing via IP)
@@ -51,7 +51,7 @@ topology subnet
 # Each client will be able to reach the server
 # on 10.8.0.1. Comment this line out if you are
 # ethernet bridging. See the man page for more info.
-server {{ openvpn_subnet }} {{ openvpn_subnet_mask }}
+server    {{ openvpn_subnet.ip }} {{ openvpn_subnet.netmask }}
 
 # Maintain a record of client <-> virtual IP address
 # associations in this file.  If OpenVPN goes down or
@@ -92,12 +92,12 @@ ifconfig-pool-persist ipp.txt
 # address pool (10.8.0.0/255.255.255.0)
 # back to the OpenVPN server.
 {% for route in openvpn_pushed_routes %}
-push "route {{ route.net }} {{ route.mask }}"
+push "route {{ route.net }} {{ route.netmask }}"
 {% endfor %}
 
-{% if openvpn_push_dns %}
-push "dhcp-option DNS {{ openvpn_dns_server}}"
-push "dhcp-option DOMAIN {{ openvpn_dns_domain }}"
+{% if openvpn_dns.push %}
+push "dhcp-option DNS {{ openvpn_dns.server}}"
+push "dhcp-option DOMAIN {{ openvpn_dns.domain }}"
 {% endif %}
 
 sndbuf 393216
@@ -121,6 +121,7 @@ mssfix 1360
 # First, uncomment out these lines:
 ;client-config-dir ccd
 ;route 192.168.40.128 255.255.255.248
+
 # Then create a file ccd/Thelonious with this line:
 #   iroute 192.168.40.128 255.255.255.248
 # This will allow Thelonious' private subnet to
@@ -208,7 +209,10 @@ keepalive 10 120
 # a copy of this key.
 # The second parameter should be '0'
 # on the server and '1' on the clients.
-tls-auth {{ openvpn_directory }}/server/ta.key 0 # This file is secret
+{% if openvpn_server.tls_auth.enabled is defined and
+      openvpn_server.tls_auth.enabled %}
+tls-auth      {{ openvpn_directory }}/keys/server/ta.key 0 # This file is secret
+{% endif %}
 
 # Select a cryptographic cipher.
 # This config item must be copied to
@@ -216,7 +220,7 @@ tls-auth {{ openvpn_directory }}/server/ta.key 0 # This file is secret
 # Note that v2.4 client/server will automatically
 # negotiate AES-256-GCM in TLS mode.
 # See also the ncp-cipher option in the manpage
-cipher      {{ openvpn_server.cipher }}
+cipher        {{ openvpn_server.cipher }}
 
 # Enable compression on the VPN link and push the
 # option to the client (v2.4+ only, for earlier
@@ -232,15 +236,15 @@ cipher      {{ openvpn_server.cipher }}
 
 # The maximum number of concurrently connected
 # clients we want to allow.
-max-clients {{ openvpn_server.max_clients }}
+max-clients   {{ openvpn_server.max_clients }}
 
 # It's a good idea to reduce the OpenVPN
 # daemon's privileges after initialization.
 #
 # You can uncomment this out on
 # non-Windows systems.
-user        {{ openvpn_server.user | default('nobody') }}
-group       {{ openvpn_server.group | default('nobody') }}
+user          {{ openvpn_server.user | default('nobody') }}
+group         {{ openvpn_server.group | default('nobody') }}
 
 # The persist options will try to avoid
 # accessing certain resources on restart
@@ -274,16 +278,16 @@ log           {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
 # 4 is reasonable for general usage
 # 5 and 6 can help to debug connection problems
 # 9 is extremely verbose
-verb {{ openvpn_logging.verbosity }}
+verb          {{ openvpn_logging.verbosity }}
 
 # Silence repeating messages.  At most 20
 # sequential messages of the same message
 # category will be output to the log.
-mute {{ openvpn_logging.mute }}
+mute          {{ openvpn_logging.mute }}
 
 # Notify the client that when the server restarts so it
 # can automatically reconnect.
 explicit-exit-notify 1
 
 # read crl directly from easy-rsa directory
-crl-verify {{ openvpn_easyrsa.directory }}/pki/crl.pem
+crl-verify    {{ openvpn_easyrsa.directory }}/pki/crl.pem

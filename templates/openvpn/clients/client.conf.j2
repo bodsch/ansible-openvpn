@@ -3,14 +3,14 @@
 
 client
 
-remote          mail.einza.com
-port            1195
-proto           udp
-dev             tap
+remote          {{ client.remote }}
+port            {{ client.port }}
+proto           {{ client.proto }}
+dev             {{ client.device }}
 
-ca              /etc/openvpn/keys/einza/ca.crt
-cert            /etc/openvpn/keys/einza/xanhaem.crt
-key             /etc/openvpn/keys/einza/xanhaem.key
+ca              {{ openvpn_directory }}/keys/{{ client.name }}/ca.crt
+cert            {{ openvpn_directory }}/keys/{{ client.name }}/{{ client.cert }}
+key             {{ openvpn_directory }}/keys/{{ client.name }}/{{ client.key }}
 
 remote-cert-tls server
 
@@ -21,7 +21,20 @@ persist-tun
 persist-key
 comp-lzo
 
-log             /var/log/openvpn/einza.log
+{% if client.tls_auth.enabled is defined and
+      client.tls_auth.enabled %}
+tls-auth      {{ openvpn_directory }}/keys/{{ client.name }}/ta.key 0 # This file is secret
+{% endif %}
 
-verb            3
-mute            10
+status        {{ openvpn_logging.directory }}/{{ openvpn_logging.status }}
+
+{% if openvpn_logging.append | bool | default('false') %}
+log-append    {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
+{% else %}
+log           {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
+{% endif %}
+
+# log             /var/log/openvpn/{{ client.name }}.log
+
+verb          {{ openvpn_logging.verbosity }}
+mute          {{ openvpn_logging.mute }}

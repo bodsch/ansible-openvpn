@@ -2,16 +2,23 @@
 
 - name: restart openvpn-server
   service:
-    name: openvpn-server@server
+    name: "{{ openvpn_service_name }}"
     state: restarted
-  when:
-    - ansible_service_mgr | lower == "systemd"
 
-- name: restart openvpn-server
+- name: restart openvpn-client
   service:
-    name: openvpn
+    name: "{{ openvpn_service_name }}"
     state: restarted
-  when:
-    - ansible_service_mgr | lower == "openrc"
+
+#   when:
+#     - ansible_service_mgr | lower == "systemd"
+#     - openvpn_type == "server"
+#
+# - name: restart openvpn-server
+#   service:
+#     name: openvpn
+#     state: restarted
+#   when:
+#     - ansible_service_mgr | lower == "openrc"
 
 ...

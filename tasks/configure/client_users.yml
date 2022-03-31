@@ -7,7 +7,7 @@
 
 - name: get TA key
   slurp:
-    src: '{{ openvpn_directory }}/server/ta.key'
+    src: '{{ openvpn_directory }}/keys/server/ta.key'
   register: openvpn_ta_key
 
 - name: create openvpn client configuration template
