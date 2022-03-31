@@ -106,12 +106,6 @@
     path: "{{ openvpn_local_tmp_directory }}/{{ client.name }}.tar.gz"
   register: _certificate_archive
 
-- name: d
-  debug:
-    msg:
-      - "{{ _certificate_archive }}"
-      - "{{ certifivate_equal }}"
-
 - name: unarchive certificates
   unarchive:
     src: "{{ openvpn_local_tmp_directory }}/{{ client.name }}.tar.gz"

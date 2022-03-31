@@ -147,6 +147,40 @@
 
 # ------------------------------------------------------------------------------------------------
 
+- name: add iptables rule for OpenVPN (masquerading)"
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    source: '{{ openvpn_subnet.ip }}/{{ openvpn_subnet.netmask }}'
+    out_interface: '{{ openvpn_server.interface }}'
+    jump: MASQUERADE
+  register: add_rule
+  tags:
+    - setup
+    - networking
+    - openvpn
+
+# - name: save iptables rules
+#   shell: iptables-save > /etc/sysconfig/iptables
+#   when: add_rule is changed
+#   tags:
+#     - setup
+#     - networking
+#     - openvpn
+
+- name: enable ip forwarding (sysctl)
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    sysctl_file: /etc/sysctl.conf
+  tags:
+    - setup
+    - networking
+    - openvpn
+
+# ------------------------------------------------------------------------------------------------
+
 - name: create openvpn configuration file (server.conf)
   template:
     src: openvpn/server/server.conf.j2

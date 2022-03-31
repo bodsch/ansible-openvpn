@@ -19,7 +19,7 @@ ping-restart    45
 ping-timer-rem
 persist-tun
 persist-key
-comp-lzo
+; comp-lzo
 
 {% if client.tls_auth.enabled is defined and
       client.tls_auth.enabled %}
@@ -27,6 +27,8 @@ tls-auth      {{ openvpn_directory }}/keys/{{ client.name }}/ta.key 0 # This fil
 {% endif %}
 
 status        {{ openvpn_logging.directory }}/{{ openvpn_logging.status }}
+
+cipher        {{ openvpn_server.cipher }}
 
 {% if openvpn_logging.append | bool | default('false') %}
 log-append    {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
