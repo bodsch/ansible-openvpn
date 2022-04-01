@@ -124,8 +124,15 @@ def test_files(host, get_vars):
 # def test_user(host, get_vars):
 #     """
 #     """
-#     user = get_vars.get("chrony_user")
-#     group = get_vars.get("chrony_group")
+#     _defaults = get_vars.get("openvpn_defaults_server")
+#     _configure = get_vars.get("openvpn_server")
+#     data = merge_two_dicts( _defaults, _configure )
+#
+#     user = data.get("user")
+#     group = data.get("group")
+#
+#     print(f"user  : {user}")
+#     print(f"group : {group}")
 #
 #     assert host.group(group).exists
 #     assert host.user(user).exists
@@ -141,38 +148,47 @@ def test_service(host, get_vars):
     assert service.is_running
 
 
-def test_open_port(host, get_vars):
-    """
-    """
-    for i in host.socket.get_listening_sockets():
-        print(i)
-
-    # # pp_json(get_vars)
-    #
-    # _defaults = get_vars.get("openvpn_defaults_clients")
-    # _configure = get_vars.get("openvpn_clients")
-    #
-    # pp_json(_defaults)
-    # pp_json(_configure)
-    #
-    # data = []
-    #
-    # for d in _defaults:
-    #     print(f"{d} {type(d)}")
-    #
-    #     _name = d.get("name", None)
-    #     print(f"  - {_name}")
-    #     if _name is not None:
-    #         x = _configure[_name]
-    #
-    #         if x.get(_name, None) is not None:
-    #             data.append(merge_two_dicts(d, x))
-    #
-    # pp_json(data)
-    # # data = merge_two_dicts( _defaults, _configure )
-    #
-    # if len(data) > 0:
-    #     port = data.get("port")
-    #
-    #     service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
-    #     assert service.is_listening
+# def test_open_port(host, get_vars):
+#     """
+#     """
+#     listening = host.socket.get_listening_sockets()
+#     interfaces = host.interface.names()
+#     tun = []
+#
+#     if "tun0" in interfaces:
+#         tun = host.interface("tun0").addresses
+#
+#     print("listening:")
+#     for i in listening:
+#         print(i)
+#
+#     print("interfaces:")
+#     for i in interfaces:
+#         print(i)
+#
+#     print("tun0:")
+#     for i in tun:
+#         print(i)
+#
+#     _defaults = get_vars.get("openvpn_defaults_clients")
+#     _configure = get_vars.get("openvpn_clients")
+#
+#     pp_json(_defaults)
+#     pp_json(_configure)
+#
+#     data = []
+#
+#     for d in _configure:
+#         print(f"{d} {type(d)}")
+#         _name = d.get("name", None)
+#         data.append(merge_two_dicts(_defaults[0], d))
+#
+#     pp_json(data)
+#     # data = merge_two_dicts( _defaults, _configure )
+#
+#     if len(data) > 0:
+#         for client in data:
+#             port = client.get("port")
+#
+#             service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
+#             assert service.is_listening

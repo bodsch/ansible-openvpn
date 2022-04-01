@@ -8,7 +8,5 @@
   tags:
     - openvpn
     - start-enable-service
-  # when:
-  #   - openvpn_type == "server"
 
 ...

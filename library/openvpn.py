@@ -5,7 +5,7 @@
 
 from __future__ import absolute_import, division, print_function
 import os
-import json
+import sys
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -65,7 +65,6 @@ class OpenVPN(object):
                 )
 
         args = []
-
 
         if self.state == "genkey":
             args.append(self._openvpn)
@@ -144,7 +143,7 @@ class OpenVPN(object):
                 """
                 """
                 with open(key_file, "r") as k_file:
-                    k_data=k_file.read().rstrip('\n')
+                    k_data = k_file.read().rstrip('\n')
 
                 cert = self.extract_certs_as_strings(cert_file)[0].rstrip('\n')
 
@@ -208,7 +207,7 @@ class OpenVPN(object):
                         print('Error, cert end found without start')
                         sys.exit(1)
                 elif cert_started:
-                        content += line
+                    content += line
 
             if cert_started:
                 print('The file is corrupted')

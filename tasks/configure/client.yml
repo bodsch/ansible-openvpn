@@ -10,15 +10,16 @@
 
 - name: create openvpn client configs
   include_tasks: configure/client_instances.yml
-  loop: "{{ openvpn_clients }}"
+  loop:
+    - "{{ openvpn_clients }}"
   loop_control:
     index_var: index
     loop_var: client
-    label: "client: {{ client.name }}"
+    label: "client: {{ client.keys() | first }}"
   when:
     - openvpn_clients is defined
     - openvpn_clients | count > 0
-    - client.name is defined
-    - client.name | string | length > 0
+    - client is defined
+    # - client.name | string | length > 0
 
 ...

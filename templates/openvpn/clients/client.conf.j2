@@ -3,14 +3,14 @@
 
 client
 
-remote          {{ client.remote }}
-port            {{ client.port }}
-proto           {{ client.proto }}
-dev             {{ client.device }}
+remote          {{ client[openvpn_client_name]['remote'] }}
+port            {{ client[openvpn_client_name]['port'] }}
+proto           {{ client[openvpn_client_name]['proto'] }}
+dev             {{ client[openvpn_client_name]['device'] }}
 
-ca              {{ openvpn_directory }}/keys/{{ client.name }}/ca.crt
-cert            {{ openvpn_directory }}/keys/{{ client.name }}/{{ client.cert }}
-key             {{ openvpn_directory }}/keys/{{ client.name }}/{{ client.key }}
+ca              {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/ca.crt
+cert            {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ client[openvpn_client_name]['cert'] }}
+key             {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ client[openvpn_client_name]['key'] }}
 
 remote-cert-tls server
 
@@ -21,9 +21,9 @@ persist-tun
 persist-key
 ; comp-lzo
 
-{% if client.tls_auth.enabled is defined and
-      client.tls_auth.enabled %}
-tls-auth      {{ openvpn_directory }}/keys/{{ client.name }}/ta.key 0 # This file is secret
+{% if client[openvpn_client_name]['tls_auth.enabled'] is defined and
+      client[openvpn_client_name]['tls_auth.enabled'] %}
+tls-auth      {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/ta.key 0 # This file is secret
 {% endif %}
 
 status        {{ openvpn_logging.directory }}/{{ openvpn_logging.status }}
@@ -36,7 +36,7 @@ log-append    {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
 log           {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
 {% endif %}
 
-# log             /var/log/openvpn/{{ client.name }}.log
+# log             /var/log/openvpn/{{ openvpn_client_name }}.log
 
 verb          {{ openvpn_logging.verbosity }}
 mute          {{ openvpn_logging.mute }}

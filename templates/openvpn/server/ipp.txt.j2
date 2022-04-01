@@ -7,6 +7,6 @@
         (user.static_ip | ipv4 or
         user.static_ip | ipv6) and
         user.state is defined and user.state == "present" %}
-{{ user.name }}, {{ user.static_ip }}
+{{ user.name }},{{ user.static_ip }}
   {% endif %}
 {% endfor %}

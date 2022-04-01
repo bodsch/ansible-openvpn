@@ -53,19 +53,31 @@ openvpn_server: {}
 #   device: tun
 #   max_clients: 10
 
-openvpn_clients: []
+openvpn_clients: {}
+#   server_name:
+#     remote: ""
+#     port: 1194
+#     proto: udp
+#     device: tun
+#     ping: 20
+#     ping_restart: 45
+#     tls_auth:
+#       enabled: false
 
 # Use distinct subnets for every VPN server, if client IPs are
 # persisted! (ifconfig-pool-persist in openvpn server.conf)
-openvpn_subnet:
-  ip:  10.8.3.0
-  netmask: 255.255.255.0
+openvpn_subnet: {}
+#   ip: 10.8.3.0
+#   netmask: 255.255.255.0
 
 # List of routes which are propagated to client.
 # Try to keep these nets small!
 openvpn_pushed_routes: []
 #  - net: 172.25.220.0
 #    netmask: 255.255.255.0
+
+openvpn_iptables:
+  enabled: false
 
 openvpn_dns:
   push: false

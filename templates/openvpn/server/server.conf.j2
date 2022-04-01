@@ -51,7 +51,15 @@ topology subnet
 # Each client will be able to reach the server
 # on 10.8.0.1. Comment this line out if you are
 # ethernet bridging. See the man page for more info.
+{% if openvpn_subnet is defined and
+      openvpn_subnet.ip is defined and
+      openvpn_subnet.ip | string | length > 0 and
+      openvpn_subnet.netmask is defined and
+      openvpn_subnet.netmask | string | length > 0 %}
 server    {{ openvpn_subnet.ip }} {{ openvpn_subnet.netmask }}
+{% else %}
+# server # NOT NETWORK DEFINED
+{% endif %}
 
 # Maintain a record of client <-> virtual IP address
 # associations in this file.  If OpenVPN goes down or

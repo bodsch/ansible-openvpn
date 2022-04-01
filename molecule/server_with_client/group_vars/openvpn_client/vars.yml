@@ -2,6 +2,10 @@
 
 openvpn_type: client
 
+openvpn_client:
+  user: "{{ openvpn_owner }}"
+  group: "{{ openvpn_group }}"
+
 openvpn_logging:
   directory: /var/log/openvpn
   file: molecule.log
@@ -11,7 +15,7 @@ openvpn_logging:
   append: true
 
 openvpn_clients:
-  - name: "molecule"
+  molecule:
     remote: server
     port: 1194
     proto: udp
@@ -20,4 +24,6 @@ openvpn_clients:
     ping_restart: 45
     cert: molecule.crt
     key: molecule.key
+#    tls_auth:
+#      enabled: false
 ...

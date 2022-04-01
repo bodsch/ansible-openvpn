@@ -122,6 +122,23 @@ def test_files(host, get_vars):
         assert f.is_file
 
 
+def test_user(host, get_vars):
+    """
+    """
+    _defaults = get_vars.get("openvpn_defaults_server")
+    _configure = get_vars.get("openvpn_server")
+    data = merge_two_dicts(_defaults, _configure)
+
+    user = data.get("user")
+    group = data.get("group")
+
+    print(f"user  : {user}")
+    print(f"group : {group}")
+
+    assert host.group(group).exists
+    assert host.user(user).exists
+
+
 def test_service(host, get_vars):
     """
     """
@@ -135,19 +152,32 @@ def test_service(host, get_vars):
 def test_open_port(host, get_vars):
     """
     """
-    for i in host.socket.get_listening_sockets():
+    listening = host.socket.get_listening_sockets()
+    interfaces = host.interface.names()
+    eth = []
+
+    if "eth0" in interfaces:
+        eth = host.interface("eth0").addresses
+
+    for i in listening:
+        print(i)
+
+    for i in interfaces:
+        print(i)
+
+    for i in eth:
         print(i)
 
     # pp_json(get_vars)
 
     _defaults = get_vars.get("openvpn_defaults_server")
     _configure = get_vars.get("openvpn_server")
-    data = merge_two_dicts( _defaults, _configure )
+    data = merge_two_dicts(_defaults, _configure)
 
     port = data.get("port")
 
     service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
     assert service.is_listening
 
-    #service = host.socket("udp://{0}:{1}".format("0.0.0.0", "123"))
-    #assert service.is_listening
+    # service = host.socket("udp://{0}:{1}".format("0.0.0.0", "123"))
+    # assert service.is_listening
