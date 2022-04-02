@@ -58,6 +58,16 @@ openvpn_client_users: []
 
 ### `openvpn_logging`
 
+`verbose` Set the appropriate level of log  file verbosity.
+
+- 0 is silent, except for fatal errors
+- 4 is reasonable for general usage
+- 5 and 6 can help to debug connection problems
+- 9 is extremely verbose
+
+`mute` Silence repeating messages. At most 20 sequential messages of the same message category will be output to the log.
+
+
 **example**
 ```yaml
 openvpn_logging:
@@ -99,6 +109,11 @@ openvpn_certificate:
 
 ### `openvpn_server`
 
+`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges after initialization.
+
+`tls_auth` For extra security beyond that provided by SSL/TLS, create an "HMAC firewall" to help block DoS attacks and UDP port flooding.
+
+
 **example**
 ```yaml
 openvpn_server:
@@ -127,6 +142,9 @@ openvpn_server:
 
 ### `openvpn_clients`
 
+`tls_auth` is recommended when is activated in `openvpn_server`!
+
+
 **example**
 ```yaml
 openvpn_clients:
@@ -138,10 +156,14 @@ openvpn_clients:
     ping: 20
     ping_restart: 45
     tls_auth:
-      enabled: false
+      enabled: true
 ```
 
 ### `openvpn_subnet`
+
+Configure server mode and supply a VPN subnet for OpenVPN to draw client addresses from.
+The server will take 10.8.0.1 for itself, the rest will be made available to clients.
+Each client will be able to reach the server on 10.8.0.1.
 
 Use distinct subnets for every VPN server, if client IPs are persisted!
 (`ifconfig-pool-persist` in openvpn `server.conf`)
@@ -154,6 +176,9 @@ openvpn_subnet:
 ```
 
 ### `openvpn_pushed_routes`
+
+Push routes to the client to allow it to reach other private subnets behind the server.
+Remember that these private subnets will also need to know to route the OpenVPN client address pool (10.8.0.0/255.255.255.0) back to the OpenVPN server.
 
 List of routes which are propagated to client. Try to keep these nets small!
 

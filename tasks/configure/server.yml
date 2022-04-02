@@ -202,6 +202,9 @@
   notify:
     - restart openvpn-server
 
+- name: flush handlers
+  meta: flush_handlers
+
 - name: create link for openrc init
   file:
     src: "{{ openvpn_directory }}/server/server.conf"

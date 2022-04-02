@@ -4,6 +4,8 @@ openvpn_directory: /etc/openvpn
 
 openvpn_diffie_hellman_keysize: 2048
 
+openvpn_mtu: 1500
+
 # server or client
 openvpn_type: ""
 
