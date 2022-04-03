@@ -2,6 +2,16 @@
 
 Ansible role to install and configure openvpn server.
 
+
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-openvpn/CI)][ci]
+[![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-openvpn)][issues]
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-openvpn)][releases]
+
+[ci]: https://github.com/bodsch/ansible-openvpn/actions
+[issues]: https://github.com/bodsch/ansible-openvpn/issues?q=is%3Aopen+is%3Aissue
+[releases]: https://github.com/bodsch/ansible-openvpn/releases
+
+
 ## Requirements & Dependencies
 
 The ipv4 filter requires python's `netaddr` be installed on the ansible controller.
