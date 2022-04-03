@@ -217,6 +217,71 @@ openvpn_client_users:
     static_ip: 10.8.3.10
 ```
 
+### example configuration for a openvpn server with 2 clients
+
+
+#### example configuration for server
+
+```yaml
+
+openvpn_type: server
+
+openvpn_client_users:
+  - name: client1.example.com
+    state: present
+    static_ip: 172.25.0.10
+  - name:  client2.example.com
+    state: present
+    static_ip: 172.25.0.11
+
+openvpn_subnet:
+  ip: 172.25.0.0
+  netmask: 255.255.255.0
+
+openvpn_pushed_routes:
+  - net: 172.25.0.0
+    netmask: 255.255.255.0
+```
+
+#### example configuration for client 1
+
+```yaml
+openvpn_type: client
+
+openvpn_clients:
+  client1.example.com:
+    remote: vpn.example.com
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: client1.example.com.crt
+    key: client1.example.com.key
+    tls_auth:
+      enabled: true
+```
+
+
+#### example configuration for client 2
+
+```yaml
+openvpn_type: client
+
+openvpn_clients:
+  client2.example.com:
+    remote: vpn.example.com
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: client2.example.com.crt
+    key: client2.example.com.key
+    tls_auth:
+      enabled: true
+```
+
 
 
 ## Contribution
