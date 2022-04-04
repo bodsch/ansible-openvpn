@@ -47,4 +47,7 @@
     group: "{{ openvpn_group }}"
     recurse: true
 
+- name: flush handlers at this point to avoid double restart
+  meta: flush_handlers
+
 ...

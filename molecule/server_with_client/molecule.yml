@@ -13,7 +13,7 @@ lint: |
 
 platforms:
   - name: server
-    image: "diodonfrost/ansible-${DISTRIBUTION:-debian:11}"
+    image: "bodsch/ansible-${DISTRIBUTION:-debian:11}"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     docker_host: "${DOCKER_HOST:-unix://run/docker.sock}"
     privileged: true
@@ -39,7 +39,7 @@ platforms:
         ipv4_address: "172.10.0.2"
 
   - name: client
-    image: "diodonfrost/ansible-${DISTRIBUTION:-debian:11}"
+    image: "bodsch/ansible-${DISTRIBUTION:-debian:11}"
     command: ${MOLECULE_DOCKER_COMMAND:-""}
     docker_host: "${DOCKER_HOST:-unix://run/docker.sock}"
     privileged: true
