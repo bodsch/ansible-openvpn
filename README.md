@@ -23,7 +23,7 @@ Tested on
 
 * Arch Linux
 * Debian based
-    - Debian 10 / 11
+    - Debian 11
 
 ## configuration
 
