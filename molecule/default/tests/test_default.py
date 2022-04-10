@@ -52,6 +52,12 @@ def read_ansible_yaml(file_name, role_name):
     return "file={} name={}".format(read_file, role_name)
 
 
+def merge_two_dicts(x, y):
+    z = x.copy()   # start with keys and values of x
+    z.update(y)    # modifies z with keys and values of y
+    return z
+
+
 @pytest.fixture()
 def get_vars(host):
     """
@@ -98,12 +104,11 @@ def get_vars(host):
     return result
 
 
-def test_files(host, get_vars):
+def test_easyrsa(host, get_vars):
     """
     """
     files = [
-        get_vars.get("chrony_config_file"),
-        get_vars.get("chrony_system_config", {}).get("file")
+        "/bin/easyrsa"
     ]
 
     for file in files:
@@ -112,24 +117,30 @@ def test_files(host, get_vars):
         assert f.is_file
 
 
-def test_user(host, get_vars):
+def test_files(host, get_vars):
     """
     """
-    user = get_vars.get("chrony_user")
-    group = get_vars.get("chrony_group")
+    files = [
+        "/etc/openvpn/server/server.conf",
+        "/etc/openvpn/keys/server/ca.crt",
+        "/etc/openvpn/keys/server/dh2048.pem",
+        "/etc/openvpn/keys/server/instance.crt",
+        "/etc/openvpn/keys/server/instance.key",
+        "/etc/openvpn/keys/server/ta.key",
+        "/etc/openvpn/client.ovpn.template"
+    ]
 
-    assert host.group(group).exists
-    assert host.user(user).exists
-    assert group in host.user(user).groups
+    for file in files:
+        f = host.file(file)
+        assert f.exists
+        assert f.is_file
 
 
 def test_service(host, get_vars):
     """
     """
-    print(get_vars.get("chrony_defaults_service", {}))
-    print(get_vars.get("chrony_defaults_service", {}).get("name"))
     service = host.service(
-        get_vars.get("chrony_defaults_service", {}).get("name")
+        get_vars.get("openvpn_service_name")
     )
     assert service.is_enabled
     assert service.is_running
@@ -138,13 +149,29 @@ def test_service(host, get_vars):
 def test_open_port(host, get_vars):
     """
     """
-    for i in host.socket.get_listening_sockets():
+    listening = host.socket.get_listening_sockets()
+    interfaces = host.interface.names()
+    eth = []
+
+    if "eth0" in interfaces:
+        eth = host.interface("eth0").addresses
+
+    for i in listening:
         print(i)
 
-    pp_json(get_vars)
+    for i in interfaces:
+        print(i)
 
-    service = host.socket("udp://{0}:{1}".format("127.0.0.1", "323"))
-    assert service.is_listening
+    for i in eth:
+        print(i)
 
-    service = host.socket("udp://{0}:{1}".format("0.0.0.0", "123"))
+    # pp_json(get_vars)
+
+    _defaults = get_vars.get("openvpn_defaults_server")
+    _configure = get_vars.get("openvpn_server")
+    data = merge_two_dicts(_defaults, _configure)
+
+    port = data.get("port")
+
+    service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
     assert service.is_listening
