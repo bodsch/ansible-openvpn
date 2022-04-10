@@ -1,4 +1,11 @@
 ---
 
+openvpn_dependencies:
+  - easy-rsa
+  - procps
+  - rsync
+  - sshpass
+  - iptables
+  - iproute2
 
 ...
