@@ -13,25 +13,32 @@
 {% if not openvpn_server.proto in _valid_attr %}
   {% set openvpn_server.proto = 'udp' %}
 {% endif %}
-remote {{ external_ip }} {{ openvpn_server.port }} {{ openvpn_server.proto }}
-
 client
-proto tcp-client
-dev {{ openvpn_server.device }}
+
+remote          {{ external_ip }} {{ openvpn_server.port }} {{ openvpn_server.proto }}
+
+proto           tcp-client
+dev             {{ openvpn_server.device }}
+
 remote-cert-tls server
-key-direction 1
-cipher AES-256-CBC
-verb 2
-mute 20
-keepalive 10 120
-comp-lzo
-mssfix 1360
-tun-mtu 1347
+key-direction   1
+keepalive       10 120
+# comp-lzo
+# mssfix          1360
+
+tun-mtu         {{ openvpn_mtu | default('1500') }}
 persist-key
 persist-tun
+
+# cipher          AES-256-CBC
+cipher          {{ openvpn_server.cipher }}
+
 float
-resolv-retry infinite
+resolv-retry    infinite
 nobind
+
+verb            2
+mute            20
 
 <ca>
 {{ openvpn_ca_cert.content | b64decode }}</ca>

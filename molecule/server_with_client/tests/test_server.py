@@ -114,6 +114,7 @@ def test_files(host, get_vars):
         "/etc/openvpn/keys/server/server.crt",
         "/etc/openvpn/keys/server/server.key",
         "/etc/openvpn/keys/server/ta.key",
+        "/etc/openvpn/client.ovpn.template"
     ]
 
     for file in files:

@@ -41,8 +41,6 @@
       include_tasks: configure/client.yml
   when:
     - openvpn_type == "client"
-    # - openvpn_mobile_clients is defined
-    # - openvpn_mobile_clients | count > 0
 
 - name: change rights for created files
   file:

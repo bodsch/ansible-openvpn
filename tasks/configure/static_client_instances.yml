@@ -1,9 +1,5 @@
 ---
 
-# - name: d
-#   debug:
-#     msg: "{{ client }}"
-
 - name: assert some requierements
   assert:
     that:
@@ -36,7 +32,6 @@
     destination_directory: /root/vpn-configs
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
-    # creates: '{{ openvpn_easyrsa.directory }}/pki/reqs/{{ item }}.req'
   loop:
     "{{ openvpn_static_clients }}"
   loop_control:

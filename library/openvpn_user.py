@@ -120,26 +120,6 @@ class OpenVPNUser(object):
                 """
                 return result
 
-
-            # return dict(
-            #     failed=False,
-            #     changed=False,
-            #     message="cert req for user {} exists".format(self._username)
-            # )
-
-        # args = []
-        #
-        # # rc = 0
-        # args.append(self._easyrsa)
-        # args.append("--batch")
-        # args.append("build-client-full")
-        # args.append(self._username)
-        # args.append("nopass")
-        #
-        # rc, out = self._exec(args)
-        #
-        # result['result'] = "{}".format(out.rstrip())
-
         # read key file
         key_file = os.path.join("pki", "private", "{}.key".format(self._username))
         cert_file = os.path.join("pki", "issued", "{}.crt".format(self._username))

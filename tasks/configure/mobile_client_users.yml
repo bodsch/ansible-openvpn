@@ -31,7 +31,6 @@
     destination_directory: /root/vpn-configs
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
-    # creates: '{{ openvpn_easyrsa.directory }}/pki/reqs/{{ item }}.req'
   loop:
     "{{ openvpn_mobile_clients }}"
   loop_control:
@@ -39,5 +38,22 @@
   when:
     - openvpn_mobile_clients is defined
     - openvpn_mobile_clients | count > 0
+
+- name: copy openvpn client configuration to ansible controller
+  become: true
+  fetch:
+    src: "/root/vpn-configs/{{ item.name }}.ovpn"
+    dest: "{{ inventory_dir }}/artifacts/{{ item.name }}.ovpn"
+    mode: 0600
+    flat: true
+    validate_checksum: false
+  loop:
+    "{{ openvpn_mobile_clients }}"
+  loop_control:
+    label: "{{ item.name }}.ovpn"
+  when:
+    - openvpn_mobile_clients is defined
+    - openvpn_mobile_clients | count > 0
+    - item.state == "present"
 
 ...

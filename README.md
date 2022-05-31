@@ -159,26 +159,19 @@ openvpn_server:
 
 There are two types of clients:
 
-- *Mobile clients*: Like laptops, mobile phones that log on to the server via an OpenVPN client.
-- *Static clients*: standing servers that also need a connection, but are installed in a data centre.
+- *mobile clients*: Like laptops, mobile phones that log on to the server via an OpenVPN client.
+- *static clients*: standing servers that also need a connection, but are installed in a data centre.
 
 #### `openvpn_mobile_clients`
 
 `tls_auth` is recommended when is activated in `openvpn_server`!
 
-
 **example**
 ```yaml
 openvpn_mobile_clients:
-  client_name:
-    remote: "vpn.domain.tld"
-    port: 1194
-    proto: udp
-    device: tun
-    ping: 20
-    ping_restart: 45
-    tls_auth:
-      enabled: true
+  - name: molecule_mobile
+    state: present
+    static_ip: 10.8.3.10
 ```
 
 #### `openvpn_static_clients`
@@ -186,9 +179,19 @@ openvpn_mobile_clients:
 **example**
 ```yaml
 openvpn_static_clients:
-  - name: darillium.matrix.lan
-    state: absent
-    static_ip: 10.8.3.10
+  - name: molecule_static
+    state: present
+    static_ip: 10.8.3.100
+    remote: server
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: molecule_static.crt
+    key: molecule_static.key
+    tls_auth:
+      enabled: true
 ```
 
 ### `openvpn_subnet`
@@ -238,8 +241,6 @@ openvpn_dns:
   server: ''
   domain: ''
 ```
-
-
 
 ### example configuration for a openvpn server with 2 clients
 
