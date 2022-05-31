@@ -99,76 +99,104 @@ class OpenVPNUser(object):
 
         cert_exists = self.__vpn_user_req()
 
-        if cert_exists:
+        if not cert_exists:
+            """
+            """
+            args = []
+
+            # rc = 0
+            args.append(self._easyrsa)
+            args.append("--batch")
+            args.append("build-client-full")
+            args.append(self._username)
+            args.append("nopass")
+
+            rc, out = self._exec(args)
+
+            result['result'] = "{}".format(out.rstrip())
+
+            if rc != 0:
+                """
+                """
+                return result
+
+
+            # return dict(
+            #     failed=False,
+            #     changed=False,
+            #     message="cert req for user {} exists".format(self._username)
+            # )
+
+        # args = []
+        #
+        # # rc = 0
+        # args.append(self._easyrsa)
+        # args.append("--batch")
+        # args.append("build-client-full")
+        # args.append(self._username)
+        # args.append("nopass")
+        #
+        # rc, out = self._exec(args)
+        #
+        # result['result'] = "{}".format(out.rstrip())
+
+        # read key file
+        key_file = os.path.join("pki", "private", "{}.key".format(self._username))
+        cert_file = os.path.join("pki", "issued", "{}.crt".format(self._username))
+
+        destination = os.path.join(self._destination_directory, "{}.ovpn".format(self._username))
+
+        self.module.log(msg="  key_file : '{}'".format(key_file))
+        self.module.log(msg="  cert_file: '{}'".format(cert_file))
+        self.module.log(msg="  ovpn file: '{}'".format(destination))
+
+        if os.path.exists(destination):
             return dict(
                 failed=False,
                 changed=False,
-                message="cert req for user {} exists".format(self._username)
+                message="ovpn file {} exists".format(destination)
             )
 
-        args = []
-
-        # rc = 0
-        args.append(self._easyrsa)
-        args.append("--batch")
-        args.append("build-client-full")
-        args.append(self._username)
-        args.append("nopass")
-
-        rc, out = self._exec(args)
-
-        result['result'] = "{}".format(out.rstrip())
-
-        if rc == 0:
+        if os.path.exists(key_file) and os.path.exists(cert_file):
             """
             """
-            # read key file
-            key_file = os.path.join("pki", "private", "{}.key".format(self._username))
-            cert_file = os.path.join("pki", "issued", "{}.crt".format(self._username))
+            with open(key_file, "r") as k_file:
+                k_data = k_file.read().rstrip('\n')
 
-            self.module.log(msg="  key_file : '{}'".format(key_file))
-            self.module.log(msg="  cert_file: '{}'".format(cert_file))
+            cert = self.__extract_certs_as_strings(cert_file)[0].rstrip('\n')
 
-            if os.path.exists(key_file) and os.path.exists(cert_file):
-                """
-                """
-                with open(key_file, "r") as k_file:
-                    k_data = k_file.read().rstrip('\n')
+            # take openvpn client template and fill
+            from jinja2 import Template
 
-                cert = self.__extract_certs_as_strings(cert_file)[0].rstrip('\n')
+            tpl = "/etc/openvpn/client.ovpn.template"
 
-                # take openvpn client template and fill
-                from jinja2 import Template
+            with open(tpl) as file_:
+                tm = Template(file_.read())
+            # self.module.log(msg=json.dumps(data, sort_keys=True))
 
-                tpl = "/etc/openvpn/client.ovpn.template"
+            d = tm.render(
+                key=k_data,
+                cert=cert
+            )
 
-                with open(tpl) as file_:
-                    tm = Template(file_.read())
-                # self.module.log(msg=json.dumps(data, sort_keys=True))
+            # destination = os.path.join(self._destination_directory, "{}.ovpn".format(self._username))
 
-                d = tm.render(
-                    key=k_data,
-                    cert=cert
-                )
+            with open(destination, "w") as fp:
+                fp.write(d)
 
-                destination = os.path.join(self._destination_directory, "{}.ovpn".format(self._username))
+            force_mode = "0600"
+            if isinstance(force_mode, str):
+                mode = int(force_mode, base=8)
 
-                with open(destination, "w") as fp:
-                    fp.write(d)
+            os.chmod(destination, mode)
 
-                force_mode = "0600"
-                if isinstance(force_mode, str):
-                    mode = int(force_mode, base=8)
+            result['failed'] = False
+            result['changed'] = True
+            message = "ovpn file successful written as {}".format(destination)
 
-                os.chmod(destination, mode)
-
-                result['failed'] = False
-                result['changed'] = True
-                message = "ovpn file successful written as {}".format(destination)
-
-            else:
-                result['failed'] = True
-                message = "can not find key or certfile for user {}".format(self._username)
+        else:
+            result['failed'] = True
+            message = "can not find key or certfile for user {}".format(self._username)
 
         result['result'] = message
 

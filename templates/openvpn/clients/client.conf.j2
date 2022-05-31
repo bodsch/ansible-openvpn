@@ -3,18 +3,18 @@
 
 client
 
-remote          {{ client[openvpn_client_name]['remote'] }}
-port            {{ client[openvpn_client_name]['port'] }}
-proto           {{ client[openvpn_client_name]['proto'] }}
-dev             {{ client[openvpn_client_name]['device'] }}
+remote          {{ client.remote }}
+port            {{ client.port }}
+proto           {{ client.proto }}
+dev             {{ client.device }}
 
 ca              {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/ca.crt
-cert            {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ client[openvpn_client_name]['cert'] }}
-key             {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ client[openvpn_client_name]['key'] }}
+cert            {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ client.cert }}
+key             {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ client.key }}
 auth-nocache
 
-{% if client[openvpn_client_name]['tls_auth']['enabled'] is defined and
-      client[openvpn_client_name]['tls_auth']['enabled'] %}
+{% if client.tls_auth.enabled is defined and
+      client.tls_auth.enabled %}
 tls-client
 tls-auth        {{ openvpn_directory }}/keys/{{ openvpn_client_name }}/ta.key 1
 {% else %}

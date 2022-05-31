@@ -1,8 +1,19 @@
 ---
 
+# - name: d
+#   debug:
+#     msg: "{{ client }}"
+
+- name: assert some requierements
+  assert:
+    that:
+      - client.remote is defined
+      - client.remote | string | length > 0
+    msg: missing 'client.remote'
+
 - name: define client name
   set_fact:
-    openvpn_client_name: "{{ client.keys() | first }}"
+    openvpn_client_name: "{{ client.name }}"
 
 - name: redefine service name
   set_fact:
@@ -17,6 +28,23 @@
     - setup
     - openvpn
 
+- name: create or revoke client certificate
+  delegate_to: "{{ client.remote }}"
+  openvpn_user:
+    state: "{{ item.state }}"
+    username: "{{ item.name }}"
+    destination_directory: /root/vpn-configs
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+    # creates: '{{ openvpn_easyrsa.directory }}/pki/reqs/{{ item }}.req'
+  loop:
+    "{{ openvpn_static_clients }}"
+  loop_control:
+    label: "{{ item.name }}, state: {{ item.state }}"
+  when:
+    - openvpn_static_clients is defined
+    - openvpn_static_clients | count > 0
+
 - name: detect client certificate file
   stat:
     path: "{{ openvpn_directory }}/keys/{{ openvpn_client_name }}//{{ openvpn_client_name }}.crt"
@@ -24,7 +52,7 @@
   register: _client_checksum
 
 - name: detect server certificate file
-  delegate_to: "{{ client[openvpn_client_name]['remote'] }}"
+  delegate_to: "{{ client.remote }}"
   stat:
     path: "{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_client_name }}.crt"
     checksum_algorithm: sha256
@@ -37,7 +65,7 @@
     }}"
 
 - name: export client certificate from openvpn server
-  delegate_to: "{{ client[openvpn_client_name]['remote'] }}"
+  delegate_to: "{{ client.remote }}"
   block:
     - name: create export directory
       file:
@@ -74,7 +102,7 @@
         loop_var: file
 
     - name: create archive with certificate files
-      delegate_to: "{{ client[openvpn_client_name]['remote'] }}"
+      delegate_to: "{{ client.remote }}"
       archive:
         format: gz
         path: "/tmp/openvpn-export/{{ openvpn_client_name }}"
@@ -88,7 +116,7 @@
         state: unmounted
 
     - name: copy created certificates from openvpn server
-      delegate_to: "{{ client[openvpn_client_name]['remote'] }}"
+      delegate_to: "{{ client.remote }}"
       fetch:
         src: "/root/vpn-configs/{{ openvpn_client_name }}.tar.gz"
         dest: "{{ openvpn_local_tmp_directory }}/{{ openvpn_client_name }}.tar.gz"

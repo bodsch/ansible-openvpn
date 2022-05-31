@@ -47,7 +47,7 @@ openvpn_certificate: {}
 
 openvpn_server: {}
 
-openvpn_clients: {}
+openvpn_mobile_clients: {}
 
 openvpn_subnet:
   ip:  10.8.3.0
@@ -63,19 +63,21 @@ openvpn_dns:
   server: ''
   domain: ''
 
-openvpn_client_users: []
+openvpn_static_clients: []
 ```
 
 ### `openvpn_logging`
 
 `verbose` Set the appropriate level of log  file verbosity.
 
-- 0 is silent, except for fatal errors
-- 4 is reasonable for general usage
-- 5 and 6 can help to debug connection problems
-- 9 is extremely verbose
+- `0` is silent, except for fatal errors
+- `4` is reasonable for general usage
+- `5` and `6` can help to debug connection problems
+- `9` is extremely verbose
 
-`mute` Silence repeating messages. At most 20 sequential messages of the same message category will be output to the log.
+`mute` Silence repeating messages.
+At most 20 sequential messages of the same message category will be output to
+the log.
 
 
 **example**
@@ -119,9 +121,11 @@ openvpn_certificate:
 
 ### `openvpn_server`
 
-`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges after initialization.
+`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges
+after initialization.
 
-`tls_auth` For extra security beyond that provided by SSL/TLS, create an "HMAC firewall" to help block DoS attacks and UDP port flooding.
+`tls_auth` For extra security beyond that provided by SSL/TLS, create an
+"HMAC firewall" to help block DoS attacks and UDP port flooding.
 
 
 **example**
@@ -144,22 +148,30 @@ openvpn_server:
   device: tun
   max_clients: 10
   tls_auth:
-    enabled: false
+    enabled: true
   cipher: AES-256-GCM
   user: nobody
   group: nogroup
 ```
 
-### `openvpn_clients`
+
+### OpenVPN Clients
+
+There are two types of clients:
+
+- *Mobile clients*: Like laptops, mobile phones that log on to the server via an OpenVPN client.
+- *Static clients*: standing servers that also need a connection, but are installed in a data centre.
+
+#### `openvpn_mobile_clients`
 
 `tls_auth` is recommended when is activated in `openvpn_server`!
 
 
 **example**
 ```yaml
-openvpn_clients:
-  server_name:
-    remote: ""
+openvpn_mobile_clients:
+  client_name:
+    remote: "vpn.domain.tld"
     port: 1194
     proto: udp
     device: tun
@@ -167,6 +179,16 @@ openvpn_clients:
     ping_restart: 45
     tls_auth:
       enabled: true
+```
+
+#### `openvpn_static_clients`
+
+**example**
+```yaml
+openvpn_static_clients:
+  - name: darillium.matrix.lan
+    state: absent
+    static_ip: 10.8.3.10
 ```
 
 ### `openvpn_subnet`
@@ -217,15 +239,7 @@ openvpn_dns:
   domain: ''
 ```
 
-### `openvpn_client_users`
 
-**example**
-```yaml
-openvpn_client_users:
-  - name: darillium.matrix.lan
-    state: absent
-    static_ip: 10.8.3.10
-```
 
 ### example configuration for a openvpn server with 2 clients
 
@@ -236,7 +250,7 @@ openvpn_client_users:
 
 openvpn_type: server
 
-openvpn_client_users:
+openvpn_static_clients:
   - name: client1.example.com
     state: present
     static_ip: 172.25.0.10
@@ -258,7 +272,7 @@ openvpn_pushed_routes:
 ```yaml
 openvpn_type: client
 
-openvpn_clients:
+openvpn_mobile_clients:
   client1.example.com:
     remote: vpn.example.com
     port: 1194
@@ -278,7 +292,7 @@ openvpn_clients:
 ```yaml
 openvpn_type: client
 
-openvpn_clients:
+openvpn_mobile_clients:
   client2.example.com:
     remote: vpn.example.com
     port: 1194

@@ -33,24 +33,11 @@
     chdir: '{{ openvpn_easyrsa.directory }}'
     # creates: '{{ openvpn_easyrsa.directory }}/pki/reqs/{{ item }}.req'
   loop:
-    "{{ openvpn_client_users }}"
+    "{{ openvpn_mobile_clients }}"
   loop_control:
     label: "{{ item.name }}, state: {{ item.state }}"
   when:
-    - openvpn_client_users is defined
-    - openvpn_client_users | count > 0
-
-- name: define static client IPs
-  template:
-    src: openvpn/server/ipp.txt.j2
-    dest: /etc/openvpn/ipp.txt
-    mode: 0644
-  loop:
-    "{{ openvpn_client_users }}"
-  loop_control:
-    label: "{{ item.name }}, state: {{ item.state }}"
-  when:
-    - openvpn_client_users is defined
-    - openvpn_client_users | count > 0
+    - openvpn_mobile_clients is defined
+    - openvpn_mobile_clients | count > 0
 
 ...

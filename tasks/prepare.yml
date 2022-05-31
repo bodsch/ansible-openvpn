@@ -58,11 +58,11 @@
 
 #- name: merge openvpn clients configuration between defaults and custom
 #  set_fact:
-#    openvpn_clients: "{{ openvpn_defaults_clients |
-#      union( openvpn_clients ) }}"
+#    openvpn_mobile_clients: "{{ openvpn_defaults_clients |
+#      union( openvpn_mobile_clients ) }}"
 #  when:
-#    - openvpn_clients is defined
-#    - openvpn_clients | count > 0
+#    - openvpn_mobile_clients is defined
+#    - openvpn_mobile_clients | count > 0
 
 - name: merge openvpn dns configuration between defaults and custom
   set_fact:

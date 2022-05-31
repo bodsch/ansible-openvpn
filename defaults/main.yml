@@ -55,7 +55,12 @@ openvpn_server: {}
 #   device: tun
 #   max_clients: 10
 
-openvpn_clients: {}
+openvpn_static_clients: []
+#   - name: darillium.matrix.lan
+#     state: absent
+#     static_ip: 10.8.3.10
+
+openvpn_mobile_clients: {}
 #   server_name:
 #     remote: ""
 #     port: 1194
@@ -85,10 +90,5 @@ openvpn_dns:
   push: false
   server: ''
   domain: ''
-
-openvpn_client_users: []
-#   - name: darillium.matrix.lan
-#     state: absent
-#     static_ip: 10.8.3.10
 
 ...
