@@ -51,6 +51,8 @@ openvpn_static_clients: []
 
 openvpn_mobile_clients: []
 
+openvpn_config_save_dir: ""
+
 openvpn_subnet:
   ip:  10.8.3.0
   mask: 255.255.255.0
@@ -161,6 +163,11 @@ There are two types of clients:
 
 - *mobile clients*: Like laptops, mobile phones that log on to the server via an OpenVPN client.
 - *static clients*: standing servers that also need a connection, but are installed in a data centre.
+
+The generated OVPN files for mobile clients are stored on the VPN server under `/root/vpn-configs`.
+You can also transfer them to the Ansible controller.
+To do this, `openvpn_config_save_dir` must be configured accordingly.
+
 
 #### `openvpn_mobile_clients`
 

@@ -26,7 +26,7 @@ openvpn_defaults_service:
 openvpn_defaults_logging:
   directory: /var/log/openvpn
   file: openvpn.log
-  status: "" # status.log
+  status: ""
   verbosity: 3
   mute: 10
   append: true

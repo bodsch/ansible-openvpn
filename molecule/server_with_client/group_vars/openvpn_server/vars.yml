@@ -22,4 +22,6 @@ openvpn_mobile_clients:
     state: present
     static_ip: 10.8.3.10
 
+openvpn_config_save_dir: "~/openvpn-configs"
+
 ...

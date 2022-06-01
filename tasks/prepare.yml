@@ -61,14 +61,6 @@
     openvpn_server: "{{ openvpn_defaults_server |
       combine( openvpn_server, recursive=True ) }}"
 
-#- name: merge openvpn clients configuration between defaults and custom
-#  set_fact:
-#    openvpn_mobile_clients: "{{ openvpn_defaults_clients |
-#      union( openvpn_mobile_clients ) }}"
-#  when:
-#    - openvpn_mobile_clients is defined
-#    - openvpn_mobile_clients | count > 0
-
 - name: merge openvpn dns configuration between defaults and custom
   set_fact:
     openvpn_dns: "{{ openvpn_defaults_dns |
