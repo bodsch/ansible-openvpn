@@ -169,8 +169,6 @@ def test_open_port(host, get_vars):
     for i in eth:
         print(i)
 
-    # pp_json(get_vars)
-
     _defaults = get_vars.get("openvpn_defaults_server")
     _configure = get_vars.get("openvpn_server")
     data = merge_two_dicts(_defaults, _configure)
@@ -179,6 +177,3 @@ def test_open_port(host, get_vars):
 
     service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
     assert service.is_listening
-
-    # service = host.socket("udp://{0}:{1}".format("0.0.0.0", "123"))
-    # assert service.is_listening

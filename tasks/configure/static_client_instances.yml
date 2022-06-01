@@ -26,10 +26,9 @@
 
 - name: create or revoke client certificate
   delegate_to: "{{ client.remote }}"
-  openvpn_user:
+  openvpn_client_certificate:
     state: "{{ item.state }}"
     username: "{{ item.name }}"
-    destination_directory: /root/vpn-configs
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
   loop:

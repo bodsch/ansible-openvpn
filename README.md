@@ -47,7 +47,9 @@ openvpn_certificate: {}
 
 openvpn_server: {}
 
-openvpn_mobile_clients: {}
+openvpn_static_clients: []
+
+openvpn_mobile_clients: []
 
 openvpn_subnet:
   ip:  10.8.3.0
@@ -62,8 +64,6 @@ openvpn_dns:
   push: false
   server: ''
   domain: ''
-
-openvpn_static_clients: []
 ```
 
 ### `openvpn_logging`
@@ -213,7 +213,8 @@ openvpn_subnet:
 ### `openvpn_pushed_routes`
 
 Push routes to the client to allow it to reach other private subnets behind the server.
-Remember that these private subnets will also need to know to route the OpenVPN client address pool (10.8.0.0/255.255.255.0) back to the OpenVPN server.
+Remember that these private subnets will also need to know to route the OpenVPN client address pool
+(10.8.0.0/255.255.255.0) back to the OpenVPN server.
 
 List of routes which are propagated to client. Try to keep these nets small!
 
@@ -245,13 +246,13 @@ openvpn_dns:
 ### example configuration for a openvpn server with 2 clients
 
 
-#### example configuration for server
+#### example configuration for mobile clients
 
 ```yaml
 
 openvpn_type: server
 
-openvpn_static_clients:
+openvpn_mobile_clients:
   - name: client1.example.com
     state: present
     static_ip: 172.25.0.10
@@ -268,13 +269,13 @@ openvpn_pushed_routes:
     netmask: 255.255.255.0
 ```
 
-#### example configuration for client 1
+#### example configuration for static client 1
 
 ```yaml
 openvpn_type: client
 
-openvpn_mobile_clients:
-  client1.example.com:
+openvpn_static_clients:
+  - name: client1.example.com
     remote: vpn.example.com
     port: 1194
     proto: udp
@@ -288,13 +289,13 @@ openvpn_mobile_clients:
 ```
 
 
-#### example configuration for client 2
+#### example configuration for static client 2
 
 ```yaml
 openvpn_type: client
 
-openvpn_mobile_clients:
-  client2.example.com:
+openvpn_static_clients:
+  - name: client2.example.com
     remote: vpn.example.com
     port: 1194
     proto: udp

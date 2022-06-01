@@ -36,6 +36,11 @@
 - name: gathering facts now
   setup:
 
+- name: merge openvpn service configuration between defaults and custom
+  set_fact:
+    openvpn_service: "{{ openvpn_defaults_service |
+      combine( openvpn_service, recursive=True ) }}"
+
 - name: merge openvpn logging configuration between defaults and custom
   set_fact:
     openvpn_logging: "{{ openvpn_defaults_logging |

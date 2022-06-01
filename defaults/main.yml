@@ -60,7 +60,7 @@ openvpn_static_clients: []
 #     state: absent
 #     static_ip: 10.8.3.10
 
-openvpn_mobile_clients: {}
+openvpn_mobile_clients: []
 #   server_name:
 #     remote: ""
 #     port: 1194
@@ -70,6 +70,8 @@ openvpn_mobile_clients: {}
 #     ping_restart: 45
 #     tls_auth:
 #       enabled: false
+
+openvpn_config_save_dir: "~/openvpn-configs"
 
 # Use distinct subnets for every VPN server, if client IPs are
 # persisted! (ifconfig-pool-persist in openvpn server.conf)

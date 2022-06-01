@@ -16,24 +16,17 @@
     loop_var: client
     label: "client: {{ client.name }}"
   when:
-#    - openvpn_static_clients is defined
-#    - openvpn_static_clients | count > 0
     - client is defined
     # - client.name | string | length > 0
 
-# - name: define static client IPs
-#   template:
-#     src: openvpn/server/ipp.txt.j2
-#     dest: /etc/openvpn/ipp.txt
-#     mode: 0644
-#   # loop:
-#   #   "{{ openvpn_static_clients | default([]) |
-#   #       union(openvpn_mobile_clients | default([])) }}"
-#   # loop_control:
-#   #   label: "{{ item.name }}, state: {{ item.state }}"
-#   when:
-#     (openvpn_static_clients is defined and
-#      openvpn_static_clients | count > 0) or
-#     (openvpn_mobile_clients is defined and
-#      openvpn_mobile_clients | count > 0)
+- name: define static client IPs
+  template:
+    src: openvpn/server/ipp.txt.j2
+    dest: /etc/openvpn/ipp.txt
+    mode: 0644
+  when:
+    (openvpn_static_clients is defined and
+     openvpn_static_clients | count > 0) or
+    (openvpn_mobile_clients is defined and
+     openvpn_mobile_clients | count > 0)
 ...
