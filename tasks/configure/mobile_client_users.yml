@@ -1,0 +1,74 @@
+---
+
+- name: get CA certificate
+  slurp:
+    src: '{{ openvpn_easyrsa.directory }}/pki/ca.crt'
+  register: openvpn_ca_cert
+
+- name: get TA key
+  slurp:
+    src: '{{ openvpn_directory }}/keys/server/ta.key'
+  register: openvpn_ta_key
+
+- name: create openvpn client configuration template
+  template:
+    src: openvpn/client_users/client.ovpn.template.j2
+    dest: '{{ openvpn_directory }}/client.ovpn.template'
+    mode: '0600'
+    owner: root
+    group: root
+
+- name: create target directory for generated client certificates
+  file:
+    state: directory
+    path: /root/vpn-configs
+    mode: 0700
+
+- name: mobile certificate
+  block:
+    - name: create or revoke client certificate
+      openvpn_client_certificate:
+        state: "{{ item.state }}"
+        username: "{{ item.name }}"
+      args:
+        chdir: '{{ openvpn_easyrsa.directory }}'
+      loop:
+        "{{ openvpn_mobile_clients }}"
+      loop_control:
+        label: "{{ item.name }}, state: {{ item.state }}"
+      register: _client_certificates
+
+    - name: create client configuration
+      openvpn_ovpn:
+        state: "{{ item.state }}"
+        username: "{{ item.name }}"
+        destination_directory: /root/vpn-configs
+      args:
+        chdir: '{{ openvpn_easyrsa.directory }}'
+      loop:
+        "{{ openvpn_mobile_clients }}"
+      loop_control:
+        label: "{{ item.name }}, state: {{ item.state }}"
+
+    - name: copy openvpn client configuration to ansible controller
+      become: true
+      fetch:
+        src: "/root/vpn-configs/{{ item.name }}.ovpn"
+        dest: "{{ openvpn_config_save_dir }}/{{ item.name }}.ovpn"
+        mode: 0600
+        flat: true
+        validate_checksum: false
+      loop:
+        "{{ openvpn_mobile_clients }}"
+      loop_control:
+        label: "{{ item.name }}.ovpn"
+      when:
+        - item.state == "present"
+        - openvpn_config_save_dir is defined
+        - openvpn_config_save_dir | string | length > 0
+
+  when:
+    - openvpn_mobile_clients is defined
+    - openvpn_mobile_clients | count > 0
+
+...

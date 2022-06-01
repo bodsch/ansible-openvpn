@@ -36,6 +36,11 @@
 - name: gathering facts now
   setup:
 
+- name: merge openvpn service configuration between defaults and custom
+  set_fact:
+    openvpn_service: "{{ openvpn_defaults_service |
+      combine( openvpn_service, recursive=True ) }}"
+
 - name: merge openvpn logging configuration between defaults and custom
   set_fact:
     openvpn_logging: "{{ openvpn_defaults_logging |
@@ -55,14 +60,6 @@
   set_fact:
     openvpn_server: "{{ openvpn_defaults_server |
       combine( openvpn_server, recursive=True ) }}"
-
-#- name: merge openvpn clients configuration between defaults and custom
-#  set_fact:
-#    openvpn_clients: "{{ openvpn_defaults_clients |
-#      union( openvpn_clients ) }}"
-#  when:
-#    - openvpn_clients is defined
-#    - openvpn_clients | count > 0
 
 - name: merge openvpn dns configuration between defaults and custom
   set_fact:

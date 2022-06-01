@@ -8,18 +8,25 @@
     state: directory
     mode: 0750
 
-- name: create openvpn client configs
-  include_tasks: configure/client_instances.yml
-  loop:
-    - "{{ openvpn_clients }}"
+- name: create openvpn static client configs
+  include_tasks: configure/static_client_instances.yml
+  loop: "{{ openvpn_static_clients }}"
   loop_control:
     index_var: index
     loop_var: client
-    label: "client: {{ client.keys() | first }}"
+    label: "client: {{ client.name }}"
   when:
-    - openvpn_clients is defined
-    - openvpn_clients | count > 0
     - client is defined
     # - client.name | string | length > 0
 
+- name: define static client IPs
+  template:
+    src: openvpn/server/ipp.txt.j2
+    dest: /etc/openvpn/ipp.txt
+    mode: 0644
+  when:
+    (openvpn_static_clients is defined and
+     openvpn_static_clients | count > 0) or
+    (openvpn_mobile_clients is defined and
+     openvpn_mobile_clients | count > 0)
 ...

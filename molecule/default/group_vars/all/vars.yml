@@ -2,7 +2,7 @@
 
 openvpn_type: server
 
-openvpn_client_users:
+openvpn_static_clients:
   - name: molecule
     state: absent
     static_ip: 10.8.3.10

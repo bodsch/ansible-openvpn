@@ -108,11 +108,11 @@ def test_files(host, get_vars):
     """
     """
     files = [
-        "/etc/openvpn/client/molecule.conf",
-        "/etc/openvpn/keys/molecule/ca.crt",
-        "/etc/openvpn/keys/molecule/molecule.crt",
-        "/etc/openvpn/keys/molecule/molecule.key",
-        "/etc/openvpn/keys/molecule/ta.key",
+        "/etc/openvpn/client/molecule_static.conf",
+        "/etc/openvpn/keys/molecule_static/ca.crt",
+        "/etc/openvpn/keys/molecule_static/molecule_static.crt",
+        "/etc/openvpn/keys/molecule_static/molecule_static.key",
+        "/etc/openvpn/keys/molecule_static/ta.key",
     ]
 
     for file in files:
@@ -142,7 +142,7 @@ def test_files(host, get_vars):
 def test_service(host, get_vars):
     """
     """
-    service = host.service("openvpn-client@molecule")
+    service = host.service("openvpn-client@molecule_static")
 
     assert service.is_enabled
     assert service.is_running
@@ -171,7 +171,7 @@ def test_service(host, get_vars):
 #         print(i)
 #
 #     _defaults = get_vars.get("openvpn_defaults_clients")
-#     _configure = get_vars.get("openvpn_clients")
+#     _configure = get_vars.get("openvpn_mobile_clients")
 #
 #     pp_json(_defaults)
 #     pp_json(_configure)

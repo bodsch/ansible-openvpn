@@ -19,10 +19,14 @@ openvpn_group: root
 
 openvpn_service_name: openvpn-server@server
 
+openvpn_defaults_service:
+  state: started
+  enabled: true
+
 openvpn_defaults_logging:
   directory: /var/log/openvpn
   file: openvpn.log
-  status: "" # status.log
+  status: ""
   verbosity: 3
   mute: 10
   append: true
@@ -67,17 +71,6 @@ openvpn_defaults_server:
   cipher: AES-256-GCM
   user: nobody
   group: nogroup
-
-# openvpn_defaults_clients:
-#   name:
-#     remote: ""
-#     port: 1194
-#     proto: udp
-#     device: tun
-#     ping: 20
-#     ping_restart: 45
-#     tls_auth:
-#       enabled: false
 
 openvpn_defaults_dns:
   push: false

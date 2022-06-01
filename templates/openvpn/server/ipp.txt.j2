@@ -1,7 +1,11 @@
 #jinja2: trim_blocks: True, lstrip_blocks: True
 # {{ ansible_managed }}
+{% set _users =
+    openvpn_static_clients | default([]) |
+    union(openvpn_mobile_clients | default([]))
+%}
 
-{% for user in openvpn_client_users %}
+{% for user in _users %}
   {% if user.static_ip is defined and
         user.static_ip | string | length > 0 and
         (user.static_ip | ipv4 or

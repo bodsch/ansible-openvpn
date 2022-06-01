@@ -27,8 +27,11 @@
     - name: configure openvpn server
       include_tasks: configure/server.yml
 
-    - name: configure openvpn client users
-      include_tasks: configure/client_users.yml
+    - name: configure openvpn mobile client config
+      include_tasks: configure/mobile_client_users.yml
+      when:
+        - openvpn_mobile_clients is defined
+        - openvpn_mobile_clients | count > 0
   when:
     - openvpn_type == "server"
 

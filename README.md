@@ -47,7 +47,11 @@ openvpn_certificate: {}
 
 openvpn_server: {}
 
-openvpn_clients: {}
+openvpn_static_clients: []
+
+openvpn_mobile_clients: []
+
+openvpn_config_save_dir: ""
 
 openvpn_subnet:
   ip:  10.8.3.0
@@ -62,20 +66,20 @@ openvpn_dns:
   push: false
   server: ''
   domain: ''
-
-openvpn_client_users: []
 ```
 
 ### `openvpn_logging`
 
 `verbose` Set the appropriate level of log  file verbosity.
 
-- 0 is silent, except for fatal errors
-- 4 is reasonable for general usage
-- 5 and 6 can help to debug connection problems
-- 9 is extremely verbose
+- `0` is silent, except for fatal errors
+- `4` is reasonable for general usage
+- `5` and `6` can help to debug connection problems
+- `9` is extremely verbose
 
-`mute` Silence repeating messages. At most 20 sequential messages of the same message category will be output to the log.
+`mute` Silence repeating messages.
+At most 20 sequential messages of the same message category will be output to
+the log.
 
 
 **example**
@@ -119,9 +123,11 @@ openvpn_certificate:
 
 ### `openvpn_server`
 
-`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges after initialization.
+`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges
+after initialization.
 
-`tls_auth` For extra security beyond that provided by SSL/TLS, create an "HMAC firewall" to help block DoS attacks and UDP port flooding.
+`tls_auth` For extra security beyond that provided by SSL/TLS, create an
+"HMAC firewall" to help block DoS attacks and UDP port flooding.
 
 
 **example**
@@ -144,27 +150,53 @@ openvpn_server:
   device: tun
   max_clients: 10
   tls_auth:
-    enabled: false
+    enabled: true
   cipher: AES-256-GCM
   user: nobody
   group: nogroup
 ```
 
-### `openvpn_clients`
+
+### OpenVPN Clients
+
+There are two types of clients:
+
+- *mobile clients*: Like laptops, mobile phones that log on to the server via an OpenVPN client.
+- *static clients*: standing servers that also need a connection, but are installed in a data centre.
+
+The generated OVPN files for mobile clients are stored on the VPN server under `/root/vpn-configs`.
+You can also transfer them to the Ansible controller.
+To do this, `openvpn_config_save_dir` must be configured accordingly.
+
+
+#### `openvpn_mobile_clients`
 
 `tls_auth` is recommended when is activated in `openvpn_server`!
 
+**example**
+```yaml
+openvpn_mobile_clients:
+  - name: molecule_mobile
+    state: present
+    static_ip: 10.8.3.10
+```
+
+#### `openvpn_static_clients`
 
 **example**
 ```yaml
-openvpn_clients:
-  server_name:
-    remote: ""
+openvpn_static_clients:
+  - name: molecule_static
+    state: present
+    static_ip: 10.8.3.100
+    remote: server
     port: 1194
     proto: udp
     device: tun
     ping: 20
     ping_restart: 45
+    cert: molecule_static.crt
+    key: molecule_static.key
     tls_auth:
       enabled: true
 ```
@@ -188,7 +220,8 @@ openvpn_subnet:
 ### `openvpn_pushed_routes`
 
 Push routes to the client to allow it to reach other private subnets behind the server.
-Remember that these private subnets will also need to know to route the OpenVPN client address pool (10.8.0.0/255.255.255.0) back to the OpenVPN server.
+Remember that these private subnets will also need to know to route the OpenVPN client address pool
+(10.8.0.0/255.255.255.0) back to the OpenVPN server.
 
 List of routes which are propagated to client. Try to keep these nets small!
 
@@ -217,26 +250,16 @@ openvpn_dns:
   domain: ''
 ```
 
-### `openvpn_client_users`
-
-**example**
-```yaml
-openvpn_client_users:
-  - name: darillium.matrix.lan
-    state: absent
-    static_ip: 10.8.3.10
-```
-
 ### example configuration for a openvpn server with 2 clients
 
 
-#### example configuration for server
+#### example configuration for mobile clients
 
 ```yaml
 
 openvpn_type: server
 
-openvpn_client_users:
+openvpn_mobile_clients:
   - name: client1.example.com
     state: present
     static_ip: 172.25.0.10
@@ -253,13 +276,13 @@ openvpn_pushed_routes:
     netmask: 255.255.255.0
 ```
 
-#### example configuration for client 1
+#### example configuration for static client 1
 
 ```yaml
 openvpn_type: client
 
-openvpn_clients:
-  client1.example.com:
+openvpn_static_clients:
+  - name: client1.example.com
     remote: vpn.example.com
     port: 1194
     proto: udp
@@ -273,13 +296,13 @@ openvpn_clients:
 ```
 
 
-#### example configuration for client 2
+#### example configuration for static client 2
 
 ```yaml
 openvpn_type: client
 
-openvpn_clients:
-  client2.example.com:
+openvpn_static_clients:
+  - name: client2.example.com
     remote: vpn.example.com
     port: 1194
     proto: udp
