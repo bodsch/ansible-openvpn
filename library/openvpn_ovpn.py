@@ -150,6 +150,39 @@ class OpenVPNOvpn(object):
             message=f"ovpn file {self.dst_file} successful removed."
         )
 
+    def __extract_certs_as_strings(self, cert_file):
+        """
+        """
+        certs = []
+        with open(cert_file) as whole_cert:
+            cert_started = False
+            content = ''
+            for line in whole_cert:
+                if '-----BEGIN CERTIFICATE-----' in line:
+                    if not cert_started:
+                        content += line
+                        cert_started = True
+                    else:
+                        print('Error, start cert found but already started')
+                        sys.exit(1)
+                elif '-----END CERTIFICATE-----' in line:
+                    if cert_started:
+                        content += line
+                        certs.append(content)
+                        content = ''
+                        cert_started = False
+                    else:
+                        print('Error, cert end found without start')
+                        sys.exit(1)
+                elif cert_started:
+                    content += line
+
+            if cert_started:
+                print('The file is corrupted')
+                sys.exit(1)
+
+        return certs
+
     def __validate_checksums(self):
         """
         """
