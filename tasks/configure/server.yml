@@ -202,6 +202,15 @@
   notify:
     - restart openvpn-server
 
+- name: define static client IPs
+  template:
+    src: openvpn/server/ipp.txt.j2
+    dest: /etc/openvpn/ipp.txt
+    mode: 0644
+  when:
+    - openvpn_persistent_pool is defined
+    - openvpn_persistent_pool | count > 0
+
 - name: flush handlers
   meta: flush_handlers
 

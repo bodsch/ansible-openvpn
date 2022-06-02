@@ -14,9 +14,10 @@ openvpn_logging:
   mute: 10
   append: true
 
-openvpn_static_clients:
+openvpn_mobile_clients:
   - name: molecule_static
     state: present
+    export: false
     static_ip: 10.8.3.100
     remote: server
     port: 1194

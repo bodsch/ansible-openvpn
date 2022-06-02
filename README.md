@@ -47,7 +47,7 @@ openvpn_certificate: {}
 
 openvpn_server: {}
 
-openvpn_static_clients: []
+openvpn_persistent_pool: []
 
 openvpn_mobile_clients: []
 
@@ -159,10 +159,6 @@ openvpn_server:
 
 ### OpenVPN Clients
 
-There are two types of clients:
-
-- *mobile clients*: Like laptops, mobile phones that log on to the server via an OpenVPN client.
-- *static clients*: standing servers that also need a connection, but are installed in a data centre.
 
 The generated OVPN files for mobile clients are stored on the VPN server under `/root/vpn-configs`.
 You can also transfer them to the Ansible controller.
@@ -171,21 +167,9 @@ To do this, `openvpn_config_save_dir` must be configured accordingly.
 
 #### `openvpn_mobile_clients`
 
-`tls_auth` is recommended when is activated in `openvpn_server`!
-
 **example**
 ```yaml
 openvpn_mobile_clients:
-  - name: molecule_mobile
-    state: present
-    static_ip: 10.8.3.10
-```
-
-#### `openvpn_static_clients`
-
-**example**
-```yaml
-openvpn_static_clients:
   - name: molecule_static
     state: present
     static_ip: 10.8.3.100
@@ -200,6 +184,19 @@ openvpn_static_clients:
     tls_auth:
       enabled: true
 ```
+
+#### `openvpn_persistent_pool`
+
+`tls_auth` is recommended when is activated in `openvpn_server`!
+
+**example**
+```yaml
+openvpn_persistent_pool:
+  - name: molecule_mobile
+    state: present
+    static_ip: 10.8.3.10
+```
+
 
 ### `openvpn_subnet`
 
@@ -281,7 +278,7 @@ openvpn_pushed_routes:
 ```yaml
 openvpn_type: client
 
-openvpn_static_clients:
+openvpn_persistent_pool:
   - name: client1.example.com
     remote: vpn.example.com
     port: 1194
@@ -301,7 +298,7 @@ openvpn_static_clients:
 ```yaml
 openvpn_type: client
 
-openvpn_static_clients:
+openvpn_persistent_pool:
   - name: client2.example.com
     remote: vpn.example.com
     port: 1194

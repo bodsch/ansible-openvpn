@@ -4,8 +4,8 @@
 # listen on? (optional)
 {% if openvpn_server.listen_ip is defined and
       openvpn_server.listen_ip | string | length > 0 and
-      (openvpn_server.listen_ip | ipv4 or
-      openvpn_server.listen_ip | ipv6) %}
+      (openvpn_server.listen_ip | ansible.utils.ipv4 or
+      openvpn_server.listen_ip | ansible.utils.ipv6) %}
 local           {{ openvpn_server.listen_ip }}
 {% endif %}
 

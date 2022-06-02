@@ -32,12 +32,12 @@
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
   loop:
-    "{{ openvpn_static_clients }}"
+    "{{ openvpn_persistent_pool }}"
   loop_control:
     label: "{{ item.name }}, state: {{ item.state }}"
   when:
-    - openvpn_static_clients is defined
-    - openvpn_static_clients | count > 0
+    - openvpn_persistent_pool is defined
+    - openvpn_persistent_pool | count > 0
 
 - name: detect client certificate file
   stat:

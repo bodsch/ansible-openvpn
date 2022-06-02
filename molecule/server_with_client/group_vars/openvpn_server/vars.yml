@@ -17,10 +17,29 @@ openvpn_pushed_routes:
 openvpn_iptables:
   enabled: true
 
-openvpn_mobile_clients:
+openvpn_persistent_pool:
+  - name: molecule_static
+    state: present
+    static_ip: 10.8.3.100
   - name: molecule_mobile
     state: present
     static_ip: 10.8.3.10
+
+openvpn_mobile_clients:
+  - name: molecule_mobile
+    state: present
+    export: true
+    static_ip: 10.8.3.10
+    remote: server
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: molecule_static.crt
+    key: molecule_static.key
+    tls_auth:
+      enabled: true
 
 openvpn_config_save_dir: "~/openvpn-configs"
 

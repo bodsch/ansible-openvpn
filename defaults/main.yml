@@ -55,7 +55,7 @@ openvpn_server: {}
 #   device: tun
 #   max_clients: 10
 
-openvpn_static_clients: []
+openvpn_persistent_pool: []
 #   - name: darillium.matrix.lan
 #     state: absent
 #     static_ip: 10.8.3.10
