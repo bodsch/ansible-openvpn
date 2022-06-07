@@ -1,13 +1,6 @@
 ---
 
-- name: assert some requierements
-  assert:
-    that:
-      - client.remote is defined
-      - client.remote | string | length > 0
-    msg: missing 'client.remote'
-
-- name: define client name
+- name: define client name to '{{ client.name }}'
   set_fact:
     openvpn_client_name: "{{ client.name }}"
 
@@ -24,24 +17,9 @@
     - setup
     - openvpn
 
-- name: create or revoke client certificate
-  delegate_to: "{{ client.remote }}"
-  openvpn_client_certificate:
-    state: "{{ item.state }}"
-    username: "{{ item.name }}"
-  args:
-    chdir: '{{ openvpn_easyrsa.directory }}'
-  loop:
-    "{{ openvpn_persistent_pool }}"
-  loop_control:
-    label: "{{ item.name }}, state: {{ item.state }}"
-  when:
-    - openvpn_persistent_pool is defined
-    - openvpn_persistent_pool | count > 0
-
 - name: detect client certificate file
   stat:
-    path: "{{ openvpn_directory }}/keys/{{ openvpn_client_name }}//{{ openvpn_client_name }}.crt"
+    path: "{{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ openvpn_client_name }}.crt"
     checksum_algorithm: sha256
   register: _client_checksum
 
@@ -54,7 +32,7 @@
 
 - name: compare checksums
   set_fact:
-    certifivate_equal: "{{
+    certificate_equal: "{{
       _client_checksum.stat.checksum | default('xx_client') == _server_checksum.stat.checksum | default('xx_server')
     }}"
 
@@ -116,7 +94,7 @@
         dest: "{{ openvpn_local_tmp_directory }}/{{ openvpn_client_name }}.tar.gz"
         flat: true
   when:
-    - not _client_checksum.stat.exists or not certifivate_equal
+    - not _client_checksum.stat.exists or not certificate_equal
 
 - name: detect certificate archive on ansible controller
   delegate_to: localhost
@@ -132,7 +110,7 @@
     group: "{{ openvpn_group }}"
   when:
     - _certificate_archive.stat.exists
-    - not certifivate_equal
+    - not certificate_equal
 
 - name: fix rights for openvpn key file
   file:

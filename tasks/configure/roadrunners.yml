@@ -1,0 +1,33 @@
+---
+
+- name: undefine openvpn service variables
+  set_fact:
+    openvpn_client_name:
+
+- name: create client configuration
+  openvpn_ovpn:
+    state: "{{ client.state }}"
+    username: "{{ client.name }}"
+    destination_directory: /root/vpn-configs
+    force: "{{ _changed_template.changed }}"
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+  loop_control:
+    label: "{{ client.name }}, state: {{ client.state }}"
+
+- name: copy openvpn client configuration to ansible controller
+  become: true
+  fetch:
+    src: "/root/vpn-configs/{{ client.name }}.ovpn"
+    dest: "{{ openvpn_config_save_dir }}/{{ client.name }}.ovpn"
+    mode: 0600
+    flat: true
+    validate_checksum: false
+  loop_control:
+    label: "{{ item.name }}.ovpn"
+  when:
+    - client.state == "present"
+    - openvpn_config_save_dir is defined
+    - openvpn_config_save_dir | string | length > 0
+
+...

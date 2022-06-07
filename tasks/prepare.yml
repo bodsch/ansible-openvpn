@@ -66,4 +66,8 @@
     openvpn_dns: "{{ openvpn_defaults_dns |
       combine( openvpn_dns, recursive=True ) }}"
 
+# - name: define persistent_pool
+#   set_fact:
+#     openvpn_persistent_pool: "{{ openvpn_mobile_clients | persistent_pool }}"
+
 ...

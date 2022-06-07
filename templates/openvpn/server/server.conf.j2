@@ -40,7 +40,7 @@ topology        subnet
       openvpn_subnet.netmask | string | length > 0 %}
 server          {{ openvpn_subnet.ip }} {{ openvpn_subnet.netmask }}
 {% else %}
-# server # NOT NETWORK DEFINED
+# server # NO NETWORK DEFINED
 {% endif %}
 
 ifconfig-pool-persist ipp.txt

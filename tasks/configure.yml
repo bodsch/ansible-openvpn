@@ -22,25 +22,16 @@
     - setup
     - openvpn
 
-- name: openvpn server
-  block:
-    - name: configure openvpn server
-      include_tasks: configure/server.yml
-
-    - name: configure openvpn mobile client config
-      include_tasks: configure/mobile_client_users.yml
-      when:
-        - openvpn_mobile_clients is defined
-        - openvpn_mobile_clients | count > 0
+- name: configure openvpn server
+  include_tasks: configure/server.yml
   when:
     - openvpn_type == "server"
 
-- name: openvpn client
-  block:
-    - name: configure openvpn client
-      include_tasks: configure/client.yml
+- name: configure openvpn client
+  include_tasks: configure/client.yml
   when:
-    - openvpn_type == "client"
+    - openvpn_mobile_clients is defined
+    - openvpn_mobile_clients | count > 0
 
 - name: change rights for created files
   file:
@@ -49,8 +40,5 @@
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
     recurse: true
-
-- name: flush handlers at this point to avoid double restart
-  meta: flush_handlers
 
 ...

@@ -1,9 +1,8 @@
 ---
 
-
 openvpn_type: client
 
-openvpn_defaults_clients:
+openvpn_mobile_clients:
   - name: "molecule"
     remote: "test.vpn.org"
     port: 1194

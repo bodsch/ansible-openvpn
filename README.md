@@ -156,23 +156,34 @@ openvpn_server:
   group: nogroup
 ```
 
-
-### OpenVPN Clients
-
+### `openvpn_mobile_clients`
 
 The generated OVPN files for mobile clients are stored on the VPN server under `/root/vpn-configs`.
+
 You can also transfer them to the Ansible controller.
 To do this, `openvpn_config_save_dir` must be configured accordingly.
 
+`tls_auth` is recommended when is activated in `openvpn_server`!
 
-#### `openvpn_mobile_clients`
+| variable       | default       | description |
+| :---           | :---          | :---        |
+| `name`         | `-`           |  |
+| `state`        | `present`     |  |
+| `roadrunner`   | `false`       |  |
+| `remote`       | `-`           |  |
+| `port`         | `1194`        |  |
+| `proto`        | `udp`         |  |
+| `device`       | `tun`         |  |
+| `ping`         | `20`          |  |
+| `ping_restart` | `45`          |  |
+| `cert`         | `${name}.crt` |  |
+| `key`          | `${name}.key` |  |
 
 **example**
 ```yaml
 openvpn_mobile_clients:
   - name: molecule_static
     state: present
-    static_ip: 10.8.3.100
     remote: server
     port: 1194
     proto: udp
@@ -181,13 +192,22 @@ openvpn_mobile_clients:
     ping_restart: 45
     cert: molecule_static.crt
     key: molecule_static.key
-    tls_auth:
-      enabled: true
+
+  - name: roadrunner_one
+    state: present
+    roadrunner: true
+    remote: server
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: roadrunner_one.crt
+    key: roadrunner_one.key
 ```
 
 #### `openvpn_persistent_pool`
 
-`tls_auth` is recommended when is activated in `openvpn_server`!
 
 **example**
 ```yaml
@@ -256,7 +276,7 @@ openvpn_dns:
 
 openvpn_type: server
 
-openvpn_mobile_clients:
+openvpn_persistent_pool:
   - name: client1.example.com
     state: present
     static_ip: 172.25.0.10
@@ -278,7 +298,7 @@ openvpn_pushed_routes:
 ```yaml
 openvpn_type: client
 
-openvpn_persistent_pool:
+openvpn_mobile_clients:
   - name: client1.example.com
     remote: vpn.example.com
     port: 1194
@@ -293,14 +313,15 @@ openvpn_persistent_pool:
 ```
 
 
-#### example configuration for static client 2
+#### example configuration for roadrunner client
 
 ```yaml
-openvpn_type: client
+openvpn_type: server
 
-openvpn_persistent_pool:
+openvpn_mobile_clients:
   - name: client2.example.com
     remote: vpn.example.com
+    roadrunner: true
     port: 1194
     proto: udp
     device: tun

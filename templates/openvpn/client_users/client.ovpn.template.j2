@@ -1,15 +1,12 @@
 #jinja2: trim_blocks: True, lstrip_blocks: True
 # {{ ansible_managed }}
 
+{% set external_ip = ansible_default_ipv4.address %}
 {% if client.remote is defined %}
   {% set external_ip = client.remote %}
 {% elif openvpn_server.external_ip is defined and
-        openvpn_server.external_ip | string | length > 0 or
-        (openvpn_server.external_ip | ansible.utils.ipv4 or
-         openvpn_server.external_ip | ansible.utils.ipv6) %}
+        openvpn_server.external_ip | string | length > 0 %}
   {% set external_ip = openvpn_server.external_ip %}
-{% else %}
-  {% set external_ip = ansible_default_ipv4.address %}
 {% endif %}
 {% set _valid_attr = ['udp','tcp'] %}
 {% if not openvpn_server.proto in _valid_attr %}
@@ -27,6 +24,7 @@ key-direction   1
 keepalive       10 120
 
 tun-mtu         {{ openvpn_mtu | default('1500') }}
+mssfix          1360
 persist-key
 persist-tun
 
@@ -36,8 +34,8 @@ float
 resolv-retry    infinite
 nobind
 
-verb            2
-mute            20
+verb            {{ openvpn_logging.verbosity }}
+mute            {{ openvpn_logging.mute }}
 
 <ca>
 {{ openvpn_ca_cert.content | b64decode }}</ca>

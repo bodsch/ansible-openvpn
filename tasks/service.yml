@@ -8,5 +8,9 @@
   tags:
     - openvpn
     - start-enable-service
+  when:
+    - openvpn_type == "server" or
+      (openvpn_client_name is defined and
+       openvpn_client_name | string | length > 0)
 
 ...

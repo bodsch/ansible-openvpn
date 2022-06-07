@@ -6,17 +6,76 @@
   file:
     path: "{{ openvpn_local_tmp_directory }}"
     state: directory
-    mode: 0750
+    mode: 0700
 
-- name: create openvpn static client configs
+- name: create target directory for generated client certificates
+  file:
+    state: directory
+    path: /root/vpn-configs
+    mode: 0700
+
+- name: get CA certificate
+  become: false
+  delegate_to: localhost
+  slurp:
+    src: '{{ openvpn_local_tmp_directory }}/ca.crt'
+  register: openvpn_ca_cert
+  no_log: true
+
+- name: get TA key
+  become: false
+  delegate_to: localhost
+  slurp:
+    src: '{{ openvpn_local_tmp_directory }}/ta.key'
+  register: openvpn_ta_key
+  no_log: true
+
+- name: create openvpn client configuration template
+  template:
+    src: openvpn/client_users/client.ovpn.template.j2
+    dest: '{{ openvpn_directory }}/client.ovpn.template'
+    mode: '0600'
+    owner: root
+    group: root
+  register: _changed_template
+
+- name:
+  set_fact:
+    static_clients: "{{ openvpn_mobile_clients | clients_type('static') }}"
+    roadrunner_clients: "{{ openvpn_mobile_clients | clients_type('roadrunner') }}"
+
+- name: create or revoke client certificate
+  delegate_to: "{{ client.remote }}"
+  openvpn_client_certificate:
+    state: "{{ client.state }}"
+    username: "{{ client.name }}"
+  args:
+    chdir: '{{ openvpn_easyrsa.directory }}'
+  loop:
+    "{{ openvpn_mobile_clients }}"
+  loop_control:
+    index_var: index
+    loop_var: client
+    label: "{{ client.name }}, state: {{ client.state }}"
+
+- name: create openvpn client configs
   include_tasks: configure/static_client_instances.yml
-  loop: "{{ openvpn_persistent_pool }}"
+  loop: "{{ static_clients }}"
   loop_control:
     index_var: index
     loop_var: client
     label: "client: {{ client.name }}"
   when:
     - client is defined
-    # - client.name | string | length > 0
+
+- name: create openvpn client configs for roadrunners
+  include_tasks: configure/roadrunners.yml
+  loop: "{{ roadrunner_clients }}"
+  loop_control:
+    index_var: index
+    loop_var: client
+    label: "client: {{ client.name }}"
+  when:
+    - client is defined
 
 ...
