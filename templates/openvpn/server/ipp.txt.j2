@@ -4,8 +4,8 @@
   {% if opp.state is defined and opp.state == "present" and
         opp.static_ip is defined and
         opp.static_ip | string | length > 0 or
-        (opp.static_ip | ansible.utils.ipv4 or
-         opp.static_ip | ansible.utils.ipv6) %}
+        (opp.static_ip | ipv4 or
+         opp.static_ip | ipv6) %}
 {{ opp.name }},{{ opp.static_ip }},
   {% endif %}
 {% endfor %}
