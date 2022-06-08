@@ -30,7 +30,7 @@ class FilterModule(object):
                 d = dict(
                     name=name,
                     state=i.get('state', 'present'),
-                    static_ip =  i.get('static_ip')
+                    static_ip = i.get('static_ip')
                 )
                 result.append(d)
 

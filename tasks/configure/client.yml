@@ -39,7 +39,7 @@
     group: root
   register: _changed_template
 
-- name:
+- name: define static and roadrunner clients
   set_fact:
     static_clients: "{{ openvpn_mobile_clients | clients_type('static') }}"
     roadrunner_clients: "{{ openvpn_mobile_clients | clients_type('roadrunner') }}"
