@@ -55,11 +55,12 @@ class OpenVPNOvpn(object):
 
         self.__validate_checksums()
 
-        if self.force and self._creates:
+        if self.force:
             self.module.log(msg="force mode ...")
-            if os.path.exists(self._creates):
-                self.module.log(msg=f"remove {self._creates}")
-                os.remove(self._creates)
+            if os.path.exists(self.dst_file):
+                self.module.log(msg=f"remove {self.dst_file}")
+                os.remove(self.dst_file)
+                os.remove(self.dst_checksum_file)
 
         if self._creates:
             if os.path.exists(self._creates):

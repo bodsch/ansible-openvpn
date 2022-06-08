@@ -14,9 +14,10 @@ openvpn_logging:
   mute: 10
   append: true
 
-openvpn_static_clients:
-  - name: molecule_static
+openvpn_mobile_clients:
+  - name: molecule
     state: present
+    roadrunner: false
     static_ip: 10.8.3.100
     remote: server
     port: 1194
@@ -24,8 +25,8 @@ openvpn_static_clients:
     device: tun
     ping: 20
     ping_restart: 45
-    cert: molecule_static.crt
-    key: molecule_static.key
+    cert: molecule.crt
+    key: molecule.key
     tls_auth:
       enabled: true
 

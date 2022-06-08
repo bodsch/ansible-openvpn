@@ -3,9 +3,7 @@
 # Which local IP address should OpenVPN
 # listen on? (optional)
 {% if openvpn_server.listen_ip is defined and
-      openvpn_server.listen_ip | string | length > 0 and
-      (openvpn_server.listen_ip | ipv4 or
-      openvpn_server.listen_ip | ipv6) %}
+      openvpn_server.listen_ip | string | length > 0 %}
 local           {{ openvpn_server.listen_ip }}
 {% endif %}
 
@@ -40,7 +38,7 @@ topology        subnet
       openvpn_subnet.netmask | string | length > 0 %}
 server          {{ openvpn_subnet.ip }} {{ openvpn_subnet.netmask }}
 {% else %}
-# server # NOT NETWORK DEFINED
+# server # NO NETWORK DEFINED
 {% endif %}
 
 ifconfig-pool-persist ipp.txt

@@ -17,10 +17,46 @@ openvpn_pushed_routes:
 openvpn_iptables:
   enabled: true
 
-openvpn_mobile_clients:
-  - name: molecule_mobile
+openvpn_persistent_pool:
+  - name: roadrunner_one
     state: present
     static_ip: 10.8.3.10
+  - name: roadrunner_two
+    state: present
+    static_ip: 10.8.3.11
+  - name: molecule
+    state: present
+    static_ip: 10.8.3.100
+
+openvpn_mobile_clients:
+  - name: roadrunner_one
+    state: present
+    roadrunner: true
+    static_ip: 10.8.3.10
+    remote: server
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: roadrunner_one.crt
+    key: roadrunner_one.key
+    tls_auth:
+      enabled: true
+  - name: roadrunner_two
+    state: present
+    remote: server
+    roadrunner: true
+    static_ip: 10.8.3.11
+    port: 1194
+    proto: udp
+    device: tun
+    ping: 20
+    ping_restart: 45
+    cert: roadrunner_two.crt
+    key: roadrunner_two.key
+    tls_auth:
+      enabled: true
 
 openvpn_config_save_dir: "~/openvpn-configs"
 
