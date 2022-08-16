@@ -12,23 +12,14 @@
   service:
     name: "{{ openvpn_service_name }}"
     state: restarted
-  # ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'omit' }}"
+  ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'false' }}"
+  failed_when: false
 
 - name: restart openvpn-client
   service:
     name: "{{ openvpn_service_name }}"
     state: restarted
-  ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'omit' }}"
-
-#   when:
-#     - ansible_service_mgr | lower == "systemd"
-#     - openvpn_type == "server"
-#
-# - name: restart openvpn-server
-#   service:
-#     name: openvpn
-#     state: restarted
-#   when:
-#     - ansible_service_mgr | lower == "openrc"
+  ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'false' }}"
+  failed_when: false
 
 ...

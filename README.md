@@ -22,6 +22,7 @@ The ipv4 filter requires python's `netaddr` be installed on the ansible controll
 Tested on
 
 * Arch Linux
+* Artix Linux
 * Debian based
     - Debian 11
 

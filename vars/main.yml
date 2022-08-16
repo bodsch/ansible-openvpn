@@ -33,7 +33,7 @@ openvpn_defaults_logging:
 
 openvpn_defaults_easyrsa:
   directory: /etc/easy-rsa
-  openssl_config: ""
+  openssl_config: "openssl-easyrsa.cnf"
   key_size: 4096
   ca_expire: 3650
   cert_expire: 3650

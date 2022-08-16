@@ -23,6 +23,7 @@ class EasyRsa(object):
 
         self.state = module.params.get("state")
         self.force = module.params.get("force", False)
+        self._pki_dir = module.params.get('pki_dir', None)
         self._req_cn_ca = module.params.get('req_cn_ca', None)
         self._req_cn_server = module.params.get('req_cn_server', None)
         self._keysize = module.params.get('keysize', None)
@@ -47,7 +48,7 @@ class EasyRsa(object):
         if self.force and self._creates:
             self.module.log(msg="force mode ...")
             if os.path.exists(self._creates):
-                self.module.log(msg="remove {}".format(self._creates))
+                self.module.log(msg=f"remove {self._creates}")
                 os.remove(self._creates)
 
         if self._creates:
@@ -78,16 +79,18 @@ class EasyRsa(object):
 
         if self.state == "init-pki":
             args.append(self.state)
+            # args.append(f"--pki-dir={self._pki_dir}")
 
         if self.state == "build-ca":
             """
                 easyrsa --batch --req-cn='{{ openvpn_req_cn_ca }}' build-ca nopass
             """
             args.append("--batch")
-            args.append("--req-cn={}".format(self._req_cn_ca))
+            # args.append(f"--pki-dir={self._pki_dir}")
+            args.append(f"--req-cn={self._req_cn_ca}")
 
             if self._keysize:
-                args.append("--keysize={}".format(self._keysize))
+                args.append(f"--keysize={self._keysize}")
             args.append(self.state)
             args.append("nopass")
 
@@ -95,6 +98,7 @@ class EasyRsa(object):
             """
                 ./easyrsa gen-crl
             """
+            # args.append(f"--pki-dir={self._pki_dir}")
             args.append(self.state)
 
         if self.state == "gen-dh":
@@ -102,7 +106,8 @@ class EasyRsa(object):
                 ./easyrsa gen-dh
             """
             if self._keysize:
-                args.append("--keysize={}".format(self._keysize))
+                args.append(f"--keysize={self._keysize}")
+            # args.append(f"--pki-dir={self._pki_dir}")
             args.append(self.state)
 
         if self.state == "gen-req":
@@ -110,7 +115,8 @@ class EasyRsa(object):
                 ./easyrsa --batch --req-cn='{{ openvpn_req_cn_server }}' gen-req '{{ openvpn_req_cn_server }}' nopass
             """
             args.append("--batch")
-            args.append("--req-cn={}".format(self._req_cn_server))
+            # args.append(f"--pki-dir={self._pki_dir}")
+            args.append(f"--req-cn={self._req_cn_ca}")
             args.append(self.state)
             args.append(self._req_cn_server)
             args.append("nopass")
@@ -120,13 +126,14 @@ class EasyRsa(object):
                 ./easyrsa --batch sign-req server '{{ openvpn_req_cn_server }}'
             """
             args.append("--batch")
+            # args.append(f"--pki-dir={self._pki_dir}")
             args.append(self.state)
             args.append("server")
             args.append(self._req_cn_server)
 
         rc, out = self._exec(args)
 
-        result['result'] = "{}".format(out.rstrip())
+        result['result'] = f"{out.rstrip()}"
 
         if rc == 0:
             result['changed'] = True
@@ -139,11 +146,11 @@ class EasyRsa(object):
         """
           execute shell program
         """
-        self.module.log(msg="  commands: '{}'".format(commands))
+        self.module.log(msg=f"  commands: '{commands}'")
         rc, out, err = self.module.run_command(commands, check_rc=True)
-        self.module.log(msg="  rc : '{}'".format(rc))
-        self.module.log(msg="  out: '{}'".format(out))
-        self.module.log(msg="  err: '{}'".format(err))
+        # self.module.log(msg="  rc : '{}'".format(rc))
+        # self.module.log(msg="  out: '{}'".format(out))
+        # self.module.log(msg="  err: '{}'".format(err))
         return rc, out
 
 
@@ -158,6 +165,10 @@ def main():
             state=dict(
                 default="init-pki",
                 choices=["init-pki", "build-ca", "gen-crl", "gen-dh", "gen-req", "sign-req"]
+            ),
+            pki_dir=dict(
+                required=False,
+                type="str"
             ),
             force=dict(
                 required=False,

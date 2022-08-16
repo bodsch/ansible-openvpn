@@ -148,7 +148,7 @@ set_var EASYRSA_NS_SUPPORT    "no"
 # specific and you cannot just use a standard config file, so this is an
 # advanced feature.
 
-#set_var EASYRSA_SSL_CONF     "$EASYRSA/{{ openvpn_easyrsa.openssl_config }}"
+set_var EASYRSA_SSL_CONF      "$EASYRSA/{{ openvpn_easyrsa.openssl_config }}"
 
 # Default CN:
 # This is best left alone. Interactively you will set this manually, and BATCH

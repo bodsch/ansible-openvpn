@@ -32,9 +32,21 @@
     owner: root
     group: root
 
+- name: create openssl-easyrsa.cnf
+  file:
+    state: link
+    src: "{{ openvpn_easyrsa.directory }}/{{ openvpn_easyrsa.openssl_config }}"
+    dest: "{{ openvpn_easyrsa.directory }}/pki/{{ openvpn_easyrsa.openssl_config }}"
+    mode: 0644
+    owner: root
+    group: root
+  when:
+    - ansible_distribution | lower == "ubuntu"
+
 - name: initialize easy-rsa PKI
   easyrsa:
     state: init-pki
+    pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
   register: _init_result
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
@@ -43,6 +55,7 @@
 - name: build CA certifikate & key
   easyrsa:
     state: build-ca
+    pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
     req_cn_ca: "{{ openvpn_certificate.req_cn_ca }}"
     keysize: 4096
   args:
@@ -53,6 +66,7 @@
 - name: create initial CRL
   easyrsa:
     state: gen-crl
+    pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
     creates: '{{ openvpn_easyrsa.directory }}/pki/crl.pem'
@@ -60,6 +74,7 @@
 - name: create DH parameters (this is going to take a long time)
   easyrsa:
     state: gen-dh
+    pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
     keysize: "{{ openvpn_diffie_hellman_keysize }}"
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
@@ -68,6 +83,7 @@
 - name: request openvpn server certificate
   easyrsa:
     state: gen-req
+    pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
     req_cn_server: '{{ openvpn_certificate.req_cn_server }}'
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'
@@ -77,6 +93,7 @@
 - name: sign openvpn server certificate
   easyrsa:
     state: sign-req
+    pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
     req_cn_server: '{{ openvpn_certificate.req_cn_server }}'
   args:
     chdir: '{{ openvpn_easyrsa.directory }}'

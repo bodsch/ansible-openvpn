@@ -5,8 +5,8 @@
     name: "{{ openvpn_service_name }}"
     state: "{{ openvpn_service.state | default('started') }}"
     enabled: "{{ openvpn_service.enabled | default(true) | bool }}"
-  ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'omit' }}"
-
+  ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'false' }}"
+  failed_when: false
   tags:
     - openvpn
     - start-enable-service
