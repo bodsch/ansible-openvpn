@@ -146,7 +146,9 @@ def test_service(host, get_vars):
         service = host.service("openvpn.molecule")
 
     assert service.is_enabled
-    assert service.is_running
+
+    if not distribution == 'artix':
+        assert service.is_running
 
 
 # def test_open_port(host, get_vars):
