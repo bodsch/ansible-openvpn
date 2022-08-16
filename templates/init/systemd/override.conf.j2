@@ -1,0 +1,9 @@
+[Unit]
+
+After         =
+Wants         =
+Requires      =
+
+After         = network-online.target {{ openvpn_systemd.requires_services | join(' ') }}
+Wants         = network-online.target {{ openvpn_systemd.requires_services | join(' ') }}
+Requires      = {{ openvpn_systemd.requires_services | join(' ') }}

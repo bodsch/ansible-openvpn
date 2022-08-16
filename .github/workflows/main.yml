@@ -2,52 +2,41 @@
 name: CI
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: "0 2 * * 0"
+    - cron: "0 4 * * 0"
+  pull_request:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "code linter"
+    #branches:
+    #  - main
+    #  - feature/*
+    #  - fix/*
+    types:
+      - completed
 
 defaults:
   run:
     working-directory: 'ansible-openvpn'
 
 jobs:
-  lint:
-    name: linting
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: lint
-        uses: docker://ghcr.io/github/super-linter:slim-v4
-        env:
-          # DEFAULT_BRANCH: master
-          GITHUB_TOKEN: ${{ secrets.GH_REGISTRY_TOKEN }}
-          VALIDATE_ALL_CODEBASE: true
-          VALIDATE_ANSIBLE: true
-          # VALIDATE_MARKDOWN: false
-          VALIDATE_YAML: true
 
   arch:
-    name: "${{ matrix.image }} / python: ${{ matrix.python-version }}, ansible: ${{ matrix.ansible-version }}"
-    needs:
-      - lint
-    runs-on: ubuntu-18.04
+    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
         image:
           - archlinux:latest
-        python-version:
-          - '3.9'
+          - artixlinux:latest
         ansible-version:
-          - '4.1.0'
-          - '5.1.0'
+          - '5.1'
+          - '6.1'
+        scenario:
+          - server_with_client
 
     steps:
       - name: check out the codebase.
@@ -55,10 +44,10 @@ jobs:
         with:
           path: 'ansible-openvpn'
 
-      - name: set up python ${{ matrix.python-version }}
+      - name: 🐍 set up python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.x'
 
       - name: install dependencies
         run: |
@@ -67,28 +56,29 @@ jobs:
 
       - name: test with tox
         run: |
-          tox -e py$(printf "${{ matrix.python-version }}" | tr -d '.')-ansible$(printf "${{ matrix.ansible-version }}" | tr -d '.') -- \
-            molecule test --scenario-name server_with_client
+          tox -e ansible_$(printf "${{ matrix.ansible-version }}") \
+            -- molecule test --scenario-name ${{ matrix.scenario }}
+
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           DISTRIBUTION: ${{ matrix.image }}
 
   deb:
-    name: "${{ matrix.image }} / python: ${{ matrix.python-version }}, ansible: ${{ matrix.ansible-version }}"
-    needs:
-      - lint
-    runs-on: ubuntu-18.04
+    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
         image:
           - debian:11
-        python-version:
-          - '3.9'
+          - ubuntu:20.04
         ansible-version:
-          - '4.1.0'
-          - '5.1.0'
+          - '5.1'
+          - '6.1'
+        scenario:
+          - server_with_client
 
     steps:
       - name: check out the codebase.
@@ -96,10 +86,10 @@ jobs:
         with:
           path: 'ansible-openvpn'
 
-      - name: set up python ${{ matrix.python-version }}
+      - name: 🐍 set up python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.x'
 
       - name: install dependencies
         run: |
@@ -108,22 +98,23 @@ jobs:
 
       - name: test with tox
         run: |
-          tox -e py$(printf "${{ matrix.python-version }}" | tr -d '.')-ansible$(printf "${{ matrix.ansible-version }}" | tr -d '.') -- \
-            molecule test --scenario-name server_with_client
+          tox -e ansible_$(printf "${{ matrix.ansible-version }}") \
+            -- molecule test --scenario-name ${{ matrix.scenario }}
+
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
           DISTRIBUTION: ${{ matrix.image }}
 
-  publish:
-    if: github.ref == 'refs/heads/main'
-    needs:
-      - arch
-      - deb
-    runs-on: ubuntu-18.04
-    steps:
-      - name: galaxy
-        uses: robertdebock/galaxy-action@1.2.0
-        with:
-          galaxy_api_key: ${{ secrets.galaxy_api_key }}
-          git_branch: main
+  # publish:
+  #   if: github.ref == 'refs/heads/main'
+  #   needs:
+  #     - arch
+  #     - deb
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: galaxy
+  #       uses: robertdebock/galaxy-action@1.2.1
+  #       with:
+  #         galaxy_api_key: ${{ secrets.galaxy_api_key }}
+  #         git_branch: main

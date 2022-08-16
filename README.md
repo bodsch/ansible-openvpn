@@ -32,12 +32,16 @@ openvpn_directory: /etc/openvpn
 
 openvpn_diffie_hellman_keysize: 2048
 
+openvpn_mtu: 1500
+
 # server or client
 openvpn_type: ""
 
 openvpn_service:
   state: started
   enabled: true
+
+openvpn_systemd: {}
 
 openvpn_logging: {}
 
@@ -66,6 +70,17 @@ openvpn_dns:
   push: false
   server: ''
   domain: ''
+```
+
+### `openvpn_systemd`
+
+If OpenVPN has a dependency on another service (e.g. on sshd), then it should be possible here to force the service into a corresponding dependency.
+(Assuming that I have understood the systemd documentation correctly!)
+
+```yaml
+openvpn_systemd:
+  requires_services:
+    - sshd.service
 ```
 
 ### `openvpn_logging`

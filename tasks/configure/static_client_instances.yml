@@ -8,6 +8,28 @@
   set_fact:
     openvpn_service_name: "openvpn-client@{{ openvpn_client_name }}"
 
+- name: support overrides for systemd
+  block:
+    - name: ensure openvpn-client@{{ openvpn_client_name }}.service.d is present
+      file:
+        dest: /etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d
+        state: directory
+        mode: 0755
+
+    - name: create overwrite.conf for systemd
+      template:
+        src: init/systemd/override.conf.j2
+        dest: "/etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d/override.conf"
+        mode: 0444
+      notify:
+        - systemctl daemon-reload
+        - restart openvpn-client
+  when:
+    - ansible_service_mgr | lower == "systemd"
+    - openvpn_systemd is defined
+    - openvpn_systemd.requires_services is defined
+    - openvpn_systemd.requires_services | count > 0
+
 - name: create client key directory
   file:
     state: directory

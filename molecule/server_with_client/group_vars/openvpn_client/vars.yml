@@ -2,6 +2,10 @@
 
 openvpn_type: client
 
+openvpn_systemd:
+  requires_services:
+    - sshd.service
+
 openvpn_client:
   user: "{{ openvpn_owner }}"
   group: "{{ openvpn_group }}"
