@@ -236,8 +236,9 @@
     state: link
     force: true
   when:
-    - ansible_distribution | lower == "archlinux"
     - ansible_service_mgr | lower == "openrc"
+    - ansible_distribution | lower == "archlinux" or
+      ansible_os_family | lower | replace(' ', '') | lower == "artixlinux"
   notify:
     - restart openvpn-server
 

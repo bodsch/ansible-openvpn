@@ -5,12 +5,13 @@
     name: "{{ openvpn_service_name }}"
     state: "{{ openvpn_service.state | default('started') }}"
     enabled: "{{ openvpn_service.enabled | default(true) | bool }}"
+  ignore_errors: "{{ 'true' if ansible_service_mgr | lower == 'openrc' else 'omit' }}"
+
   tags:
     - openvpn
     - start-enable-service
   when:
     - openvpn_type == "server" or
-      (openvpn_client_name is defined and
-       openvpn_client_name | string | length > 0)
+      (openvpn_client_name is defined and openvpn_client_name | string | length > 0)
 
 ...

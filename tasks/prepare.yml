@@ -15,6 +15,8 @@
         - "{{ ansible_distribution | lower }}.yml"
         # eg. redhat / debian
         - "{{ ansible_os_family | lower }}.yml"
+        # artixlinux
+        - "{{ ansible_os_family | lower | replace(' ', '') }}.yml"
         - default.yml
       skip: true
 
@@ -36,35 +38,14 @@
 - name: gathering facts now
   setup:
 
-- name: merge openvpn service configuration between defaults and custom
+- name: merge openvpn configuration between defaults and custom
   set_fact:
-    openvpn_service: "{{ openvpn_defaults_service |
-      combine( openvpn_service, recursive=True ) }}"
-
-- name: merge openvpn logging configuration between defaults and custom
-  set_fact:
-    openvpn_logging: "{{ openvpn_defaults_logging |
-      combine( openvpn_logging, recursive=True ) }}"
-
-- name: merge openvpn easyrsa configuration between defaults and custom
-  set_fact:
-    openvpn_easyrsa: "{{ openvpn_defaults_easyrsa |
-      combine( openvpn_easyrsa, recursive=True ) }}"
-
-- name: merge openvpn certificate configuration between defaults and custom
-  set_fact:
-    openvpn_certificate: "{{ openvpn_defaults_certificate |
-      combine( openvpn_certificate, recursive=True ) }}"
-
-- name: merge openvpn server configuration between defaults and custom
-  set_fact:
-    openvpn_server: "{{ openvpn_defaults_server |
-      combine( openvpn_server, recursive=True ) }}"
-
-- name: merge openvpn dns configuration between defaults and custom
-  set_fact:
-    openvpn_dns: "{{ openvpn_defaults_dns |
-      combine( openvpn_dns, recursive=True ) }}"
+    openvpn_service: "{{ openvpn_defaults_service | combine( openvpn_service, recursive=True ) }}"
+    openvpn_logging: "{{ openvpn_defaults_logging | combine( openvpn_logging, recursive=True ) }}"
+    openvpn_easyrsa: "{{ openvpn_defaults_easyrsa | combine( openvpn_easyrsa, recursive=True ) }}"
+    openvpn_certificate: "{{ openvpn_defaults_certificate | combine( openvpn_certificate, recursive=True ) }}"
+    openvpn_server: "{{ openvpn_defaults_server | combine( openvpn_server, recursive=True ) }}"
+    openvpn_dns: "{{ openvpn_defaults_dns | combine( openvpn_dns, recursive=True ) }}"
 
 # - name: define persistent_pool
 #   set_fact:

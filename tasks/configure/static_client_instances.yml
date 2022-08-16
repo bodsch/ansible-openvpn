@@ -4,31 +4,42 @@
   set_fact:
     openvpn_client_name: "{{ client.name }}"
 
-- name: redefine service name
-  set_fact:
-    openvpn_service_name: "openvpn-client@{{ openvpn_client_name }}"
-
-- name: support overrides for systemd
+- name: systemd
   block:
-    - name: ensure openvpn-client@{{ openvpn_client_name }}.service.d is present
-      file:
-        dest: /etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d
-        state: directory
-        mode: 0755
+    - name: redefine service name
+      set_fact:
+        openvpn_service_name: "openvpn-client@{{ openvpn_client_name }}"
 
-    - name: create overwrite.conf for systemd
-      template:
-        src: init/systemd/override.conf.j2
-        dest: "/etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d/override.conf"
-        mode: 0444
-      notify:
-        - systemctl daemon-reload
-        - restart openvpn-client
+    - name: support overrides for systemd
+      block:
+        - name: ensure openvpn-client@{{ openvpn_client_name }}.service.d is present
+          file:
+            dest: /etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d
+            state: directory
+            mode: 0755
+
+        - name: create overwrite.conf for systemd
+          template:
+            src: init/systemd/override.conf.j2
+            dest: "/etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d/override.conf"
+            mode: 0444
+          notify:
+            - systemctl daemon-reload
+            - restart openvpn-client
+      when:
+        - openvpn_systemd is defined
+        - openvpn_systemd.requires_services is defined
+        - openvpn_systemd.requires_services | count > 0
   when:
     - ansible_service_mgr | lower == "systemd"
-    - openvpn_systemd is defined
-    - openvpn_systemd.requires_services is defined
-    - openvpn_systemd.requires_services | count > 0
+
+- name: openrc
+  block:
+    - name: redefine service name
+      set_fact:
+        openvpn_service_name: "openvpn.{{ openvpn_client_name }}"
+  when:
+    - ansible_service_mgr | lower == "openrc"
 
 - name: create client key directory
   file:
@@ -147,17 +158,27 @@
   notify:
     - restart openvpn-client
 
-- name: create link for openrc init
-  file:
-    src: "{{ openvpn_directory }}/client/{{ openvpn_client_name }}.conf"
-    dest: "{{ openvpn_directory }}/{{ openvpn_client_name }}.conf"
-    owner: "{{ openvpn_owner }}"
-    group: "{{ openvpn_group }}"
-    state: link
-    force: true
+- name: openrc
+  block:
+    - name: create link for openrc init
+      file:
+        src: "/etc/init.d/openvpn"
+        dest: "/etc/init.d/openvpn.{{ openvpn_client_name }}"
+        state: link
+        force: true
+
+    - name: create link for openvpn config
+      file:
+        src: "{{ openvpn_directory }}/client/{{ openvpn_client_name }}.conf"
+        dest: "{{ openvpn_directory }}/{{ openvpn_client_name }}.conf"
+        owner: "{{ openvpn_owner }}"
+        group: "{{ openvpn_group }}"
+        state: link
+        force: true
   when:
-    - ansible_distribution | lower == "archlinux"
     - ansible_service_mgr | lower == "openrc"
+    - ansible_distribution | lower == "archlinux" or
+      ansible_os_family | lower | replace(' ', '') | lower == "artixlinux"
   notify:
     - restart openvpn-server
 

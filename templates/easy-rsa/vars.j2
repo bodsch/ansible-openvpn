@@ -42,7 +42,7 @@ set_var EASYRSA_PKI		"$EASYRSA/pki"
 #   cn_only  - use just a CN value
 #   org      - use the "traditional" Country/Province/City/Org/OU/email/CN format
 
-set_var EASYRSA_DN	"cn_only"
+set_var EASYRSA_DN      "{{ openvpn_easyrsa.x509_dn_mode }}"
 
 # Organizational fields (used with 'org' mode and ignored in 'cn_only' mode.)
 # These are the default values for fields which will be placed in the
@@ -63,33 +63,35 @@ set_var EASYRSA_REQ_OU       "{{ openvpn_certificate.req_ou }}"
 # generation take much longer. Values up to 4096 should be accepted by most
 # software. Only used when the crypto alg is rsa (see below.)
 
-set_var EASYRSA_KEY_SIZE  {{ openvpn_easyrsa.key_size }}
+set_var EASYRSA_KEY_SIZE      {{ openvpn_easyrsa.key_size }}
 
 # The default crypto mode is rsa; ec can enable elliptic curve support.
 # Note that not all software supports ECC, so use care when enabling it.
 # Choices for crypto alg are: (each in lower-case)
 #  * rsa
 #  * ec
+#  * ed
 
-set_var EASYRSA_ALGO		rsa
+set_var EASYRSA_ALGO          "{{ openvpn_easyrsa.crypto_mode }}"
 
 # Define the named curve, used in ec mode only:
-
-#set_var EASYRSA_CURVE		secp384r1
+{% if openvpn_easyrsa.crypto_mode == "ec" %}
+set_var EASYRSA_CURVE         "{{ openvpn_easyrsa.rsa_curve }}"
+{% endif %}
 
 # In how many days should the root CA key expire?
 
-set_var EASYRSA_CA_EXPIRE	{{ openvpn_easyrsa.ca_expire }}
+set_var EASYRSA_CA_EXPIRE     {{ openvpn_easyrsa.ca_expire }}
 
 # In how many days should certificates expire?
 
-set_var EASYRSA_CERT_EXPIRE	{{ openvpn_easyrsa.cert_expire }}
+set_var EASYRSA_CERT_EXPIRE   {{ openvpn_easyrsa.cert_expire }}
 
 # How many days until the next CRL publish date?  Note that the CRL can still be
 # parsed after this timeframe passes. It is only used for an expected next
 # publication date.
 
-#set_var EASYRSA_CRL_DAYS	{{ openvpn_easyrsa.crl_days }}
+set_var EASYRSA_CRL_DAYS      {{ openvpn_easyrsa.crl_days }}
 
 # Support deprecated "Netscape" extensions? (choices "yes" or "no".) The default
 # is "no" to discourage use of deprecated extensions. If you require this
@@ -100,18 +102,18 @@ set_var EASYRSA_CERT_EXPIRE	{{ openvpn_easyrsa.cert_expire }}
 # nsCertType=server attribute, and also get any NS_COMMENT defined below in the
 # nsComment field.
 
-set_var EASYRSA_NS_SUPPORT	"no"
+set_var EASYRSA_NS_SUPPORT    "no"
 
 # When NS_SUPPORT is set to "yes", this field is added as the nsComment field.
 # Set this blank to omit it. With NS_SUPPORT set to "no" this field is ignored.
 
-#set_var EASYRSA_NS_COMMENT	"Easy-RSA Generated Certificate"
+#set_var EASYRSA_NS_COMMENT   "Easy-RSA Generated Certificate"
 
 # A temp file used to stage cert extensions during signing. The default should
 # be fine for most users; however, some users might want an alternative under a
 # RAM-based FS, such as /dev/shm or /tmp on some systems.
 
-#set_var EASYRSA_TEMP_FILE	"$EASYRSA_PKI/extensions.temp"
+#set_var EASYRSA_TEMP_FILE    "$EASYRSA_PKI/extensions.temp"
 
 # !!
 # NOTE: ADVANCED OPTIONS BELOW THIS POINT
@@ -121,9 +123,9 @@ set_var EASYRSA_NS_SUPPORT	"no"
 # Broken shell command aliases: If you have a largely broken shell that is
 # missing any of these POSIX-required commands used by Easy-RSA, you will need
 # to define an alias to the proper path for the command.  The symptom will be
-# some form of a 'command not found' error from your shell. This means your
+# some form of a "command not found" error from your shell. This means your
 # shell is BROKEN, but you can hack around it here if you really need. These
-# shown values are not defaults: it is up to you to know what you're doing if
+# shown values are not defaults: it is up to you to know what you are doing if
 # you touch these.
 #
 #alias awk="/alt/bin/awk"
@@ -132,37 +134,37 @@ set_var EASYRSA_NS_SUPPORT	"no"
 # X509 extensions directory:
 # If you want to customize the X509 extensions used, set the directory to look
 # for extensions here. Each cert type you sign must have a matching filename,
-# and an optional file named 'COMMON' is included first when present. Note that
+# and an optional file named "COMMON" is included first when present. Note that
 # when undefined here, default behaviour is to look in $EASYRSA_PKI first, then
-# fallback to $EASYRSA for the 'x509-types' dir.  You may override this
+# fallback to $EASYRSA for the "x509-types" dir.  You may override this
 # detection with an explicit dir here.
 #
-#set_var EASYRSA_EXT_DIR	"$EASYRSA/x509-types"
+#set_var EASYRSA_EXT_DIR      "$EASYRSA/x509-types"
 
 # OpenSSL config file:
 # If you need to use a specific openssl config file, you can reference it here.
-# Normally this file is auto-detected from a file named openssl-1.0.cnf from the
+# Normally this file is auto-detected from a file named openssl-easyrsa.cnf from the
 # EASYRSA_PKI or EASYRSA dir (in that order.) NOTE that this file is Easy-RSA
 # specific and you cannot just use a standard config file, so this is an
 # advanced feature.
 
-#set_var EASYRSA_SSL_CONF	"$EASYRSA/{{ openvpn_easyrsa.openssl_config }}"
+#set_var EASYRSA_SSL_CONF     "$EASYRSA/{{ openvpn_easyrsa.openssl_config }}"
 
 # Default CN:
 # This is best left alone. Interactively you will set this manually, and BATCH
 # callers are expected to set this themselves.
 
-#set_var EASYRSA_REQ_CN		"ChangeMe"
+#set_var EASYRSA_REQ_CN       "ChangeMe"
 
 # Cryptographic digest to use.
 # Do not change this default unless you understand the security implications.
 # Valid choices include: md5, sha1, sha256, sha224, sha384, sha512
 
-set_var EASYRSA_DIGEST		"sha512"
+set_var EASYRSA_DIGEST        "{{ openvpn_easyrsa.digest }}"
 
 # Batch mode. Leave this disabled unless you intend to call Easy-RSA explicitly
 # in batch mode without any user input, confirmation on dangerous operations,
 # or most output. Setting this to any non-blank string enables batch mode.
 
-#set_var EASYRSA_BATCH		""
+#set_var EASYRSA_BATCH        ""
 

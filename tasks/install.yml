@@ -23,6 +23,24 @@
         dest: /bin/easyrsa
 
   when:
-    - ansible_distribution | lower == "debian"
+    - ansible_os_family | lower == "debian"
+
+- name: openrc
+  block:
+    - name: copy up.sh to system
+      copy:
+        src: up.sh
+        dest: /etc/openvpn/
+        mode: 0750
+
+    - name: copy down.sh to system
+      copy:
+        src: down.sh
+        dest: /etc/openvpn/
+        mode: 0750
+
+  when:
+    - ansible_service_mgr | lower == "openrc"
+    - not openvpn_type == "server"
 
 ...

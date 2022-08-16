@@ -69,34 +69,30 @@ def get_vars(host):
     """
     base_dir, molecule_dir = base_directory()
     distribution = host.system_info.distribution
+    operation_system = None
 
     if distribution in ['debian', 'ubuntu']:
-        os = "debian"
+        operation_system = "debian"
     elif distribution in ['redhat', 'ol', 'centos', 'rocky', 'almalinux']:
-        os = "redhat"
-    elif distribution in ['arch']:
-        os = "archlinux"
+        operation_system = "redhat"
+    elif distribution in ['arch', 'artix']:
+        operation_system = f"{distribution}linux"
 
-    # print(" -> {} / {}".format(distribution, os))
-    # print(" -> {}".format(base_dir))
-
-    file_defaults      = read_ansible_yaml("{}/defaults/main".format(base_dir), "role_defaults")
-    file_vars          = read_ansible_yaml("{}/vars/main".format(base_dir), "role_vars")
-    file_distribution  = read_ansible_yaml("{}/vars/{}".format(base_dir, os), "role_distribution")
-    file_molecule      = read_ansible_yaml("{}/group_vars/openvpn_server/vars".format(molecule_dir), "test_vars")
+    file_defaults = f"file={base_dir}/defaults/main.yml name=role_defaults"
+    file_vars = f"file={base_dir}/vars/main.yml name=role_vars"
+    file_molecule = f"file={molecule_dir}/group_vars/all/vars.yml name=test_vars"
+    file_distibution = f"file={base_dir}/vars/{operation_system}.yml name=role_distibution"
     # file_host_molecule = read_ansible_yaml("{}/host_vars/{}/vars".format(base_dir, HOST), "host_vars")
 
-    defaults_vars      = host.ansible("include_vars", file_defaults).get("ansible_facts").get("role_defaults")
-    vars_vars          = host.ansible("include_vars", file_vars).get("ansible_facts").get("role_vars")
-    distribution_vars  = host.ansible("include_vars", file_distribution).get("ansible_facts").get("role_distribution")
-    molecule_vars      = host.ansible("include_vars", file_molecule).get("ansible_facts").get("test_vars")
-    # host_vars          = host.ansible("include_vars", file_host_molecule).get("ansible_facts").get("host_vars")
+    defaults_vars = host.ansible("include_vars", file_defaults).get("ansible_facts").get("role_defaults")
+    vars_vars = host.ansible("include_vars", file_vars).get("ansible_facts").get("role_vars")
+    distribution_vars = host.ansible("include_vars", file_distibution).get("ansible_facts").get("role_distibution")
+    molecule_vars = host.ansible("include_vars", file_molecule).get("ansible_facts").get("test_vars")
 
     ansible_vars = defaults_vars
     ansible_vars.update(vars_vars)
     ansible_vars.update(distribution_vars)
     ansible_vars.update(molecule_vars)
-    # ansible_vars.update(host_vars)
 
     templar = Templar(loader=DataLoader(), variables=ansible_vars)
     result = templar.template(ansible_vars, fail_on_undefined=False)
@@ -128,7 +124,11 @@ def test_user(host, get_vars):
     """
     _defaults = get_vars.get("openvpn_defaults_server")
     _configure = get_vars.get("openvpn_server")
-    data = merge_two_dicts(_defaults, _configure)
+
+    if _defaults and _configure:
+        data = merge_two_dicts(_defaults, _configure)
+    else:
+        data = _defaults
 
     user = data.get("user")
     group = data.get("group")
@@ -143,9 +143,17 @@ def test_user(host, get_vars):
 def test_service(host, get_vars):
     """
     """
+    distribution = host.system_info.distribution
+
     service = host.service(
         get_vars.get("openvpn_service_name")
     )
+
+    if distribution == 'artix':
+        service = host.service("openvpn")
+
+    print(f"service: {service}")
+
     assert service.is_enabled
     assert service.is_running
 
