@@ -1,5 +1,11 @@
 ---
 
+- name: systemctl daemon-reload
+  become: true
+  systemd:
+    daemon_reload: true
+    force: true
+
 - name: restart openvpn-server
   service:
     name: "{{ openvpn_service_name }}"

@@ -2,12 +2,18 @@
 name: stand-alone server
 
 on:
-  pull_request:
-  push:
+  schedule:
+    - cron: "0 5 * * 0"
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "code linter"
     branches:
       - main
-  schedule:
-    - cron: "0 2 * * 0"
+      - feature/*
+      - fix/*
+    types:
+      - completed
 
 defaults:
   run:
@@ -15,18 +21,19 @@ defaults:
 
 jobs:
   deb:
-    name: "${{ matrix.image }} / python: ${{ matrix.python-version }}, ansible: ${{ matrix.ansible-version }}"
-    runs-on: ubuntu-18.04
+    name: "${{ matrix.image }} / ansible: ${{ matrix.ansible-version }}"
+    runs-on: ubuntu-20.04
+    if: ${{ github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
     strategy:
       fail-fast: false
       matrix:
         image:
           - debian:11
-        python-version:
-          - '3.9'
         ansible-version:
-          - '4.1.0'
-          - '5.1.0'
+          - '5.1'
+          - '6.1'
+        scenario:
+          - default
 
     steps:
       - name: check out the codebase.
@@ -34,10 +41,10 @@ jobs:
         with:
           path: 'ansible-openvpn'
 
-      - name: set up python ${{ matrix.python-version }}
+      - name: 🐍 set up python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.x'
 
       - name: install dependencies
         run: |
@@ -46,8 +53,8 @@ jobs:
 
       - name: test with tox
         run: |
-          tox -e py$(printf "${{ matrix.python-version }}" | tr -d '.')-ansible$(printf "${{ matrix.ansible-version }}" | tr -d '.') -- \
-            molecule test
+          tox -e ansible_$(printf "${{ matrix.ansible-version }}") \
+            -- molecule test --scenario-name default
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
