@@ -3,14 +3,15 @@
 Ansible role to install and configure openvpn server.
 
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/bodsch/ansible-openvpn/CI)][ci]
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bodsch/ansible-openvpn/main.yml?branch=main)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-openvpn)][issues]
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/bodsch/ansible-openvpn)][releases]
+[![Ansible Quality Score](https://img.shields.io/ansible/quality/50067?label=role%20quality)][quality]
 
 [ci]: https://github.com/bodsch/ansible-openvpn/actions
 [issues]: https://github.com/bodsch/ansible-openvpn/issues?q=is%3Aopen+is%3Aissue
 [releases]: https://github.com/bodsch/ansible-openvpn/releases
-
+[quality]: https://galaxy.ansible.com/bodsch/openvpn
 
 ## Requirements & Dependencies
 
