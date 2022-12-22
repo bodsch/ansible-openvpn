@@ -1,7 +1,7 @@
 ---
 
 - name: start and enable service
-  service:
+  ansible.builtin.service:
     name: "{{ openvpn_service_name }}"
     state: "{{ openvpn_service.state | default('started') }}"
     enabled: "{{ openvpn_service.enabled | default(true) | bool }}"

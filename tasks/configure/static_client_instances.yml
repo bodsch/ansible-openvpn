@@ -1,48 +1,48 @@
 ---
 
 - name: define client name to '{{ client.name }}'
-  set_fact:
+  ansible.builtin.set_fact:
     openvpn_client_name: "{{ client.name }}"
 
 - name: systemd
+  when:
+    - ansible_service_mgr | lower == "systemd"
   block:
     - name: redefine service name
-      set_fact:
+      ansible.builtin.set_fact:
         openvpn_service_name: "openvpn-client@{{ openvpn_client_name }}"
 
     - name: support overrides for systemd
+      when:
+        - openvpn_systemd is defined
+        - openvpn_systemd.requires_services is defined
+        - openvpn_systemd.requires_services | count > 0
       block:
         - name: ensure openvpn-client@{{ openvpn_client_name }}.service.d is present
-          file:
+          ansible.builtin.file:
             dest: /etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d
             state: directory
             mode: 0755
 
         - name: create overwrite.conf for systemd
-          template:
+          ansible.builtin.template:
             src: init/systemd/override.conf.j2
             dest: "/etc/systemd/system/openvpn-client@{{ openvpn_client_name }}.service.d/override.conf"
             mode: 0444
           notify:
             - systemctl daemon-reload
             - restart openvpn-client
-      when:
-        - openvpn_systemd is defined
-        - openvpn_systemd.requires_services is defined
-        - openvpn_systemd.requires_services | count > 0
-  when:
-    - ansible_service_mgr | lower == "systemd"
 
 - name: openrc
-  block:
-    - name: redefine service name
-      set_fact:
-        openvpn_service_name: "openvpn.{{ openvpn_client_name }}"
   when:
     - ansible_service_mgr | lower == "openrc"
+  block:
+    - name: redefine service name
+      ansible.builtin.set_fact:
+        openvpn_service_name: "openvpn.{{ openvpn_client_name }}"
 
 - name: create client key directory
-  file:
+  ansible.builtin.file:
     state: directory
     path: '{{ openvpn_directory }}/keys/{{ openvpn_client_name }}/'
     mode: 0755
@@ -51,35 +51,37 @@
     - openvpn
 
 - name: detect client certificate file
-  stat:
+  ansible.builtin.stat:
     path: "{{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ openvpn_client_name }}.crt"
     checksum_algorithm: sha256
   register: _client_checksum
 
 - name: detect server certificate file
   delegate_to: "{{ client.remote }}"
-  stat:
+  ansible.builtin.stat:
     path: "{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_client_name }}.crt"
     checksum_algorithm: sha256
   register: _server_checksum
 
 - name: compare checksums
-  set_fact:
+  ansible.builtin.set_fact:
     certificate_equal: "{{
       _client_checksum.stat.checksum | default('xx_client') == _server_checksum.stat.checksum | default('xx_server')
     }}"
 
 - name: export client certificate from openvpn server
   delegate_to: "{{ client.remote }}"
+  when:
+    - not _client_checksum.stat.exists or not certificate_equal
   block:
     - name: create export directory
-      file:
+      ansible.builtin.file:
         state: directory
         path: /tmp/openvpn-export
         mode: 0700
 
     - name: mount tmpfs to export
-      mount:
+      ansible.posix.mount:
         name: /tmp/openvpn-export
         src: tmpfs
         fstype: tmpfs
@@ -87,13 +89,13 @@
         state: mounted
 
     - name: create export directory for client
-      file:
+      ansible.builtin.file:
         state: directory
         path: "/tmp/openvpn-export/{{ openvpn_client_name }}"
         mode: 0700
 
     - name: copy files for export
-      copy:
+      ansible.builtin.copy:
         remote_src: true
         src: "{{ file }}"
         dest: "/tmp/openvpn-export/{{ openvpn_client_name }}/"
@@ -108,35 +110,33 @@
 
     - name: create archive with certificate files
       delegate_to: "{{ client.remote }}"
-      archive:
+      community.general.archive:
         format: gz
         path: "/tmp/openvpn-export/{{ openvpn_client_name }}"
         dest: "/root/vpn-configs/{{ openvpn_client_name }}.tar.gz"
         mode: 0600
 
     - name: umount export tmpfs
-      mount:
+      ansible.posix.mount:
         name: /tmp/openvpn-export
         src: tmpfs
         state: unmounted
 
     - name: copy created certificates from openvpn server
       delegate_to: "{{ client.remote }}"
-      fetch:
+      ansible.builtin.fetch:
         src: "/root/vpn-configs/{{ openvpn_client_name }}.tar.gz"
         dest: "{{ openvpn_local_tmp_directory }}/{{ openvpn_client_name }}.tar.gz"
         flat: true
-  when:
-    - not _client_checksum.stat.exists or not certificate_equal
 
 - name: detect certificate archive on ansible controller
   delegate_to: localhost
-  stat:
+  ansible.builtin.stat:
     path: "{{ openvpn_local_tmp_directory }}/{{ openvpn_client_name }}.tar.gz"
   register: _certificate_archive
 
 - name: unarchive certificates
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ openvpn_local_tmp_directory }}/{{ openvpn_client_name }}.tar.gz"
     dest: "{{ openvpn_directory }}/keys/"
     owner: "{{ openvpn_owner }}"
@@ -146,12 +146,12 @@
     - not certificate_equal
 
 - name: fix rights for openvpn key file
-  file:
+  ansible.builtin.file:
     path: "{{ openvpn_directory }}/keys/{{ openvpn_client_name }}/{{ openvpn_client_name }}.key"
     mode: 0600
 
 - name: create openvpn client config
-  template:
+  ansible.builtin.template:
     src: openvpn/clients/client.conf.j2
     dest: "{{ openvpn_directory }}/client/{{ openvpn_client_name }}.conf"
     mode: 0640
@@ -159,27 +159,27 @@
     - restart openvpn-client
 
 - name: openrc
-  block:
-    - name: create link for openrc init
-      file:
-        src: "/etc/init.d/openvpn"
-        dest: "/etc/init.d/openvpn.{{ openvpn_client_name }}"
-        state: link
-        force: true
-
-    - name: create link for openvpn config
-      file:
-        src: "{{ openvpn_directory }}/client/{{ openvpn_client_name }}.conf"
-        dest: "{{ openvpn_directory }}/{{ openvpn_client_name }}.conf"
-        owner: "{{ openvpn_owner }}"
-        group: "{{ openvpn_group }}"
-        state: link
-        force: true
   when:
     - ansible_service_mgr | lower == "openrc"
     - ansible_distribution | lower == "archlinux" or
       ansible_os_family | lower | replace(' ', '') | lower == "artixlinux"
   notify:
     - restart openvpn-server
+  block:
+    - name: create link for openrc init
+      ansible.builtin.file:
+        src: "/etc/init.d/openvpn"
+        dest: "/etc/init.d/openvpn.{{ openvpn_client_name }}"
+        state: link
+        force: true
+
+    - name: create link for openvpn config
+      ansible.builtin.file:
+        src: "{{ openvpn_directory }}/client/{{ openvpn_client_name }}.conf"
+        dest: "{{ openvpn_directory }}/{{ openvpn_client_name }}.conf"
+        owner: "{{ openvpn_owner }}"
+        group: "{{ openvpn_group }}"
+        state: link
+        force: true
 
 ...

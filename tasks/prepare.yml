@@ -1,7 +1,7 @@
 ---
 
 - name: include OS specific configuration
-  include_vars: "{{ lookup('first_found', params) }}"
+  ansible.builtin.include_vars: "{{ lookup('first_found', params) }}"
   vars:
     params:
       paths:
@@ -21,31 +21,31 @@
       skip: true
 
 - name: detect docker environment
-  set_fact:
+  ansible.builtin.set_fact:
     is_docker_guest: "{{
       ansible_virtualization_role | default('host') == 'guest' and
       ansible_virtualization_type | default('none') == 'docker' }}"
 
 - name: update package cache
-  package:
+  ansible.builtin.package:
     update_cache: true
 
 - name: install dependencies
-  package:
+  ansible.builtin.package:
     name: "{{ openvpn_dependencies }}"
     state: present
 
 - name: gathering facts now
-  setup:
+  ansible.builtin.setup:
 
 - name: merge openvpn configuration between defaults and custom
-  set_fact:
-    openvpn_service: "{{ openvpn_defaults_service | combine( openvpn_service, recursive=True ) }}"
-    openvpn_logging: "{{ openvpn_defaults_logging | combine( openvpn_logging, recursive=True ) }}"
-    openvpn_easyrsa: "{{ openvpn_defaults_easyrsa | combine( openvpn_easyrsa, recursive=True ) }}"
-    openvpn_certificate: "{{ openvpn_defaults_certificate | combine( openvpn_certificate, recursive=True ) }}"
-    openvpn_server: "{{ openvpn_defaults_server | combine( openvpn_server, recursive=True ) }}"
-    openvpn_dns: "{{ openvpn_defaults_dns | combine( openvpn_dns, recursive=True ) }}"
+  ansible.builtin.set_fact:
+    openvpn_service: "{{ openvpn_defaults_service | combine(openvpn_service, recursive=True) }}"
+    openvpn_logging: "{{ openvpn_defaults_logging | combine(openvpn_logging, recursive=True) }}"
+    openvpn_easyrsa: "{{ openvpn_defaults_easyrsa | combine(openvpn_easyrsa, recursive=True) }}"
+    openvpn_certificate: "{{ openvpn_defaults_certificate | combine(openvpn_certificate, recursive=True) }}"
+    openvpn_server: "{{ openvpn_defaults_server | combine(openvpn_server, recursive=True) }}"
+    openvpn_dns: "{{ openvpn_defaults_dns | combine(openvpn_dns, recursive=True) }}"
 
 # - name: define persistent_pool
 #   set_fact:

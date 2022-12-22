@@ -1,7 +1,7 @@
 ---
 
 - name: create openvpn server directory
-  file:
+  ansible.builtin.file:
     path: '{{ openvpn_directory }}/server'
     state: directory
     owner: "{{ openvpn_owner }}"
@@ -12,7 +12,7 @@
     - openvpn_setup
 
 - name: create server key directory
-  file:
+  ansible.builtin.file:
     state: directory
     path: '{{ openvpn_directory }}/keys/server'
     owner: "{{ openvpn_owner }}"
@@ -25,7 +25,7 @@
 # ------------------------------------------------------------------------------------------------
 
 - name: create easy-rsa configuration file
-  template:
+  ansible.builtin.template:
     src: easy-rsa/vars.j2
     dest: '{{ openvpn_easyrsa.directory }}/vars'
     mode: 0644
@@ -33,7 +33,7 @@
     group: root
 
 - name: create openssl-easyrsa.cnf
-  file:
+  ansible.builtin.file:
     state: link
     src: "{{ openvpn_easyrsa.directory }}/{{ openvpn_easyrsa.openssl_config }}"
     dest: "{{ openvpn_easyrsa.directory }}/pki/{{ openvpn_easyrsa.openssl_config }}"
@@ -103,7 +103,7 @@
 # ------------------------------------------------------------------------------------------------
 
 - name: copy CA certificate to openvpn server directory
-  copy:
+  ansible.builtin.copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/ca.crt'
     dest: '{{ openvpn_directory }}/keys/server/'
     owner: "{{ openvpn_owner }}"
@@ -112,7 +112,7 @@
     mode: '0644'
 
 - name: copy server certificate to openvpn server directory
-  copy:
+  ansible.builtin.copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_certificate.req_cn_server }}.crt'
     dest: '{{ openvpn_directory }}/keys/server/'
     owner: "{{ openvpn_owner }}"
@@ -121,7 +121,7 @@
     mode: '0644'
 
 - name: copy server key to openvpn server directory
-  copy:
+  ansible.builtin.copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/private/{{ openvpn_certificate.req_cn_server }}.key'
     dest: '{{ openvpn_directory }}/keys/server/'
     owner: "{{ openvpn_owner }}"
@@ -130,7 +130,7 @@
     mode: 0600
 
 - name: copy DH parameter file to openvpn server directory
-  copy:
+  ansible.builtin.copy:
     src: '{{ openvpn_easyrsa.directory }}/pki/dh.pem'
     dest: '{{ openvpn_directory }}/keys/server/dh{{ openvpn_diffie_hellman_keysize }}.pem'
     owner: "{{ openvpn_owner }}"
@@ -146,7 +146,7 @@
     creates: '{{ openvpn_directory }}/keys/server/ta.key'
 
 - name: change rights for pki
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ openvpn_easyrsa.directory }}/pki"
     owner: "{{ openvpn_owner }}"
@@ -155,7 +155,7 @@
     # recurse: true
 
 - name: change rights for crl.pem
-  file:
+  ansible.builtin.file:
     # state: file
     path: "{{ openvpn_easyrsa.directory }}/pki/crl.pem"
     owner: "{{ openvpn_owner }}"
@@ -163,7 +163,7 @@
     mode: 0640
 
 - name: fetch CA certificate to ansible controller
-  fetch:
+  ansible.builtin.fetch:
     src: "{{ openvpn_easyrsa.directory }}/pki/ca.crt"
     dest: "{{ openvpn_local_tmp_directory }}/"
     mode: 0600
@@ -171,7 +171,7 @@
   no_log: true
 
 - name: fetch TA key to ansible controller
-  fetch:
+  ansible.builtin.fetch:
     src: "{{ openvpn_directory }}/keys/server/ta.key"
     dest: "{{ openvpn_local_tmp_directory }}/"
     mode: 0600
@@ -181,9 +181,13 @@
 # ------------------------------------------------------------------------------------------------
 
 - name: iptables integration
+  when:
+    - openvpn_iptables is defined
+    - openvpn_iptables.enabled is defined
+    - openvpn_iptables.enabled
   block:
     - name: add iptables rule for OpenVPN (masquerading)"
-      iptables:
+      ansible.builtin.iptables:
         table: nat
         chain: POSTROUTING
         source: '{{ openvpn_subnet.ip }}/{{ openvpn_subnet.netmask }}'
@@ -208,7 +212,7 @@
     #     - openvpn
 
     - name: enable ip forwarding (sysctl)
-      sysctl:
+      ansible.posix.sysctl:
         name: net.ipv4.ip_forward
         value: '1'
         state: present
@@ -217,15 +221,11 @@
         - setup
         - networking
         - openvpn
-  when:
-    - openvpn_iptables is defined
-    - openvpn_iptables.enabled is defined
-    - openvpn_iptables.enabled
 
 # ------------------------------------------------------------------------------------------------
 
 - name: create openvpn configuration file (server.conf)
-  template:
+  ansible.builtin.template:
     src: openvpn/server/server.conf.j2
     dest: "{{ openvpn_directory }}/server/server.conf"
     mode: '0644'
@@ -236,7 +236,7 @@
     - restart openvpn-server
 
 - name: define static client IPs
-  template:
+  ansible.builtin.template:
     src: openvpn/server/ipp.txt.j2
     dest: /etc/openvpn/ipp.txt
     mode: 0644
@@ -245,7 +245,7 @@
     - openvpn_persistent_pool | count > 0
 
 - name: create link for openrc init
-  file:
+  ansible.builtin.file:
     src: "{{ openvpn_directory }}/server/server.conf"
     dest: "{{ openvpn_directory }}/openvpn.conf"
     owner: "{{ openvpn_owner }}"
@@ -260,6 +260,6 @@
     - restart openvpn-server
 
 - name: flush handlers
-  meta: flush_handlers
+  ansible.builtin.meta: flush_handlers
 
 ...

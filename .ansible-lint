@@ -3,3 +3,5 @@
 skip_list:
   - name[casing]
   - name[template]
+  - ignore-errors   # Use failed_when and specify error conditions instead of using ignore_errors.
+  - args[module]    # value of state must be one of: present, absent, got: {{ client.state }}

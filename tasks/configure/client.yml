@@ -3,13 +3,13 @@
 - name: create temporary transfer directory on ansible controller
   become: false
   delegate_to: localhost
-  file:
+  ansible.builtin.file:
     path: "{{ openvpn_local_tmp_directory }}"
     state: directory
     mode: 0700
 
 - name: create target directory for generated client certificates
-  file:
+  ansible.builtin.file:
     state: directory
     path: /root/vpn-configs
     mode: 0700
@@ -17,7 +17,7 @@
 - name: get CA certificate
   become: false
   delegate_to: localhost
-  slurp:
+  ansible.builtin.slurp:
     src: '{{ openvpn_local_tmp_directory }}/ca.crt'
   register: openvpn_ca_cert
   no_log: true
@@ -25,13 +25,13 @@
 - name: get TA key
   become: false
   delegate_to: localhost
-  slurp:
+  ansible.builtin.slurp:
     src: '{{ openvpn_local_tmp_directory }}/ta.key'
   register: openvpn_ta_key
   no_log: true
 
 - name: create openvpn client configuration template
-  template:
+  ansible.builtin.template:
     src: openvpn/client_users/client.ovpn.template.j2
     dest: '{{ openvpn_directory }}/client.ovpn.template'
     mode: '0600'
@@ -40,7 +40,7 @@
   register: _changed_template
 
 - name: define static and roadrunner clients
-  set_fact:
+  ansible.builtin.set_fact:
     static_clients: "{{ openvpn_mobile_clients | clients_type('static') }}"
     roadrunner_clients: "{{ openvpn_mobile_clients | clients_type('roadrunner') }}"
 
@@ -59,7 +59,7 @@
     label: "{{ client.name }}, state: {{ client.state }}"
 
 - name: create openvpn client configs
-  include_tasks: configure/static_client_instances.yml
+  ansible.builtin.include_tasks: configure/static_client_instances.yml
   loop: "{{ static_clients }}"
   loop_control:
     index_var: index
@@ -69,7 +69,7 @@
     - client is defined
 
 - name: create openvpn client configs for roadrunners
-  include_tasks: configure/roadrunners.yml
+  ansible.builtin.include_tasks: configure/roadrunners.yml
   loop: "{{ roadrunner_clients }}"
   loop_control:
     index_var: index

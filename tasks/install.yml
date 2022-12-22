@@ -1,7 +1,7 @@
 ---
 
 - name: install package
-  package:
+  ansible.builtin.package:
     name: "{{ openvpn_packages }}"
     state: present
   tags:
@@ -9,38 +9,36 @@
     - openvpn_install
 
 - name: handle easy-rsa
+  when:
+    - ansible_os_family | lower == "debian"
   block:
     - name: link easy-rsa into /etc
-      file:
+      ansible.builtin.file:
         state: link
         src: /usr/share/easy-rsa
         dest: "{{ openvpn_easyrsa.directory }}"
 
     - name: link easyrsa binary into /bin
-      file:
+      ansible.builtin.file:
         state: link
         src: "{{ openvpn_easyrsa.directory }}/easyrsa"
         dest: /bin/easyrsa
 
-  when:
-    - ansible_os_family | lower == "debian"
-
 - name: openrc
+  when:
+    - ansible_service_mgr | lower == "openrc"
+    - not openvpn_type == "server"
   block:
     - name: copy up.sh to system
-      copy:
+      ansible.builtin.copy:
         src: up.sh
         dest: /etc/openvpn/
         mode: 0750
 
     - name: copy down.sh to system
-      copy:
+      ansible.builtin.copy:
         src: down.sh
         dest: /etc/openvpn/
         mode: 0750
-
-  when:
-    - ansible_service_mgr | lower == "openrc"
-    - not openvpn_type == "server"
 
 ...

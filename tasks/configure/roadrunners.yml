@@ -1,7 +1,7 @@
 ---
 
 - name: undefine openvpn service variables
-  set_fact:
+  ansible.builtin.set_fact:
     openvpn_client_name:
 
 - name: create client configuration
@@ -17,7 +17,7 @@
 
 - name: copy openvpn client configuration to ansible controller
   become: true
-  fetch:
+  ansible.builtin.fetch:
     src: "/root/vpn-configs/{{ client.name }}.ovpn"
     dest: "{{ openvpn_config_save_dir }}/{{ client.name }}.ovpn"
     mode: 0600
