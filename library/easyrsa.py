@@ -160,45 +160,47 @@ class EasyRsa(object):
 
 def main():
 
-    module = AnsibleModule(
-        argument_spec=dict(
-            state=dict(
-                default="init-pki",
-                choices=["init-pki", "build-ca", "gen-crl", "gen-dh", "gen-req", "sign-req"]
-            ),
-            pki_dir=dict(
-                required=False,
-                type="str"
-            ),
-            force=dict(
-                required=False,
-                default=False,
-                type='bool'
-            ),
-            req_cn_ca=dict(
-                required=False
-            ),
-            req_cn_server=dict(
-                required=False
-            ),
-            keysize=dict(
-                required=False,
-                type="int"
-            ),
-            chdir=dict(
-                required=False
-            ),
-            creates=dict(
-                required=False
-            ),
+    args=dict(
+        state=dict(
+            default="init-pki",
+            choices=["init-pki", "build-ca", "gen-crl", "gen-dh", "gen-req", "sign-req"]
         ),
+        pki_dir=dict(
+            required=False,
+            type="str"
+        ),
+        force=dict(
+            required=False,
+            default=False,
+            type='bool'
+        ),
+        req_cn_ca=dict(
+            required=False
+        ),
+        req_cn_server=dict(
+            required=False
+        ),
+        keysize=dict(
+            required=False,
+            type="int"
+        ),
+        chdir=dict(
+            required=False
+        ),
+        creates=dict(
+            required=False
+        ),
+    )
+
+    module = AnsibleModule(
+        argument_spec=args,
         supports_check_mode=False,
     )
 
     e = EasyRsa(module)
     result = e.run()
 
-    module.log(msg="= result: {}".format(result))
+    module.log(msg=f"= result: {result}")
 
     module.exit_json(**result)
 
