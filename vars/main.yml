@@ -38,6 +38,9 @@ openvpn_defaults_easyrsa:
   ca_expire: 3650
   cert_expire: 3650
   crl_days: 180
+  crl_warn:
+    expired: true
+    expire_in_days: 20
   x509_dn_mode: cn_only
   # Choices for crypto alg are: (each in lower-case)
   #  * rsa

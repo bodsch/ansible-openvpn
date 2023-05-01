@@ -1,11 +1,9 @@
 ---
+
 - name: converge
   hosts: all
-  any_errors_fatal: true
-  gather_facts: true
-
-  environment:
-    NETRC: ''
+  any_errors_fatal: false
+  become: false
 
   roles:
     - role: ansible-openvpn

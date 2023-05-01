@@ -2,6 +2,25 @@
 
 openvpn_type: server
 
+openvpn_easyrsa:
+  directory: /etc/easy-rsa
+  openssl_config: "openssl-easyrsa.cnf"
+  key_size: 4096
+  ca_expire: 120
+  cert_expire: 120
+  crl_days: 15
+  crl_warn:
+    expired: true
+    expire_in_days: 10
+  x509_dn_mode: cn_only
+  # Choices for crypto alg are: (each in lower-case)
+  #  * rsa
+  #  * ec
+  #  * ed
+  crypto_mode: rsa
+  rsa_curve: secp384r1
+  digest: sha512
+
 openvpn_server:
   user: "{{ openvpn_owner }}"
   group: "{{ openvpn_group }}"

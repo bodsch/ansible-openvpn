@@ -48,6 +48,8 @@ push            "route {{ route.net }} {{ route.netmask }}"
 {% endfor %}
 
 {% if openvpn_dns.push %}
+{# TODO #}
+{# every entry becomes one line! #}
 push            "dhcp-option DNS {{ openvpn_dns.server}}"
 push            "dhcp-option DOMAIN {{ openvpn_dns.domain }}"
 {% endif %}
@@ -66,19 +68,20 @@ keepalive       10 120
 
 cipher          {{ openvpn_server.cipher }}
 
+{#
 # Enable compression on the VPN link and push the
 # option to the client (v2.4+ only, for earlier
 # versions see below)
 compress lz4-v2
 push "compress lz4-v2"
 allow-compression yes
-
+#}
 max-clients     {{ openvpn_server.max_clients }}
 
 user            {{ openvpn_server.user | default('nobody') }}
 group           {{ openvpn_server.group | default('nobody') }}
 
-{% if openvpn_logging.append | bool | default('false') %}
+{% if openvpn_logging.append | default('false') | bool %}
 log-append      {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
 {% else %}
 log             {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
