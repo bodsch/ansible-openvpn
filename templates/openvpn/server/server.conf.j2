@@ -42,16 +42,28 @@ server          {{ openvpn_subnet.ip }} {{ openvpn_subnet.netmask }}
 {% endif %}
 
 ifconfig-pool-persist ipp.txt
+{% if openvpn_push is defined and
+      openvpn_push | bodsch.core.type == "dict" and
+      openvpn_push | count > 0 %}
 
-{% for route in openvpn_pushed_routes %}
-push            "route {{ route.net }} {{ route.netmask }}"
-{% endfor %}
-
-{% if openvpn_dns.push %}
-{# TODO #}
-{# every entry becomes one line! #}
-push            "dhcp-option DNS {{ openvpn_dns.server}}"
-push            "dhcp-option DOMAIN {{ openvpn_dns.domain }}"
+  {% set _push_routes = openvpn_push.routes | default([]) %}
+  {% set _push_dns = openvpn_push.dns | default([]) %}
+  {% set _push_domains = openvpn_push.domains | default([]) %}
+  {% if _push_routes | count > 0 %}
+    {% for e in _push_routes %}
+push            "route {{ e.net }} {{ e.netmask }}"
+    {% endfor %}
+  {% endif %}
+  {% if _push_dns | count > 0 %}
+    {% for e in _push_dns %}
+push            "dhcp-option DNS {{ e }}"
+    {% endfor %}
+  {% endif %}
+  {% if _push_domains | count > 0 %}
+    {% for e in _push_domains %}
+push            "dhcp-option DOMAIN {{ e }}"
+    {% endfor %}
+  {% endif %}
 {% endif %}
 
 sndbuf          393216

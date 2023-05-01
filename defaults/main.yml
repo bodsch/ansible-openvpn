@@ -85,18 +85,16 @@ openvpn_subnet: {}
 #   ip: 10.8.3.0
 #   netmask: 255.255.255.0
 
-# List of routes which are propagated to client.
-# Try to keep these nets small!
-openvpn_pushed_routes: []
-#  - net: 172.25.220.0
-#    netmask: 255.255.255.0
-
 openvpn_iptables:
   enabled: false
 
-openvpn_dns:
-  push: false
-  server: ''
-  domain: ''
+openvpn_push:
+  # List of routes which are propagated to client.
+  # Try to keep these nets small!
+  routes: []
+  #  - net: 172.25.220.0
+  #    netmask: 255.255.255.0
+  domains: []
+  dns: []
 
 ...

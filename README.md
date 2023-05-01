@@ -63,15 +63,13 @@ openvpn_subnet:
   ip:  10.8.3.0
   mask: 255.255.255.0
 
-openvpn_pushed_routes: []
-
 openvpn_iptables:
   enabled: false
 
-openvpn_dns:
-  push: false
-  server: ''
-  domain: ''
+openvpn_push:
+  routes: []
+  domains: []
+  dns: []
 ```
 
 ### `openvpn_systemd`
@@ -251,9 +249,11 @@ openvpn_subnet:
   mask: 255.255.255.0
 ```
 
-### `openvpn_pushed_routes`
+### `openvpn_push`
 
-Push routes to the client to allow it to reach other private subnets behind the server.
+#### `routes`
+
+Push routes to the client to allow it to reach other private subnets behind the server.  
 Remember that these private subnets will also need to know to route the OpenVPN client address pool
 (10.8.0.0/255.255.255.0) back to the OpenVPN server.
 
@@ -261,9 +261,30 @@ List of routes which are propagated to client. Try to keep these nets small!
 
 **example**
 ```yaml
-openvpn_pushed_routes:
-  - net: 172.25.220.0
-    mask: 255.255.255.0
+openvpn_push:
+  routes:
+    - net: 10.8.3.0
+      netmask: 255.255.255.0
+```
+
+#### `dns`
+
+**example**
+```yaml
+openvpn_push:
+  dns:
+    - 10.15.0.2
+    - 10.15.0.5
+```
+
+#### `dns`
+
+**example**
+```yaml
+openvpn_push:
+  domains:
+    - matrix.vpn
+    - customer.vpn
 ```
 
 ### `openvpn_iptables`
@@ -274,15 +295,7 @@ openvpn_iptables:
   enabled: false
 ```
 
-### `openvpn_dns`
 
-**example**
-```yaml
-openvpn_dns:
-  push: false
-  server: ''
-  domain: ''
-```
 
 ### example configuration for a openvpn server with 2 clients
 
