@@ -100,6 +100,29 @@
     creates: '{{ openvpn_easyrsa.directory }}/pki/issued/{{ openvpn_certificate.req_cn_server }}.crt'
   when: server_cert_request is succeeded
 
+- name: validate crl
+  openvpn_crl:
+    warn_for_expire: "{{ openvpn_easyrsa.crl_warn.expired }}"
+    expire_in_days: "{{ openvpn_easyrsa.crl_warn.expire_in_days }}"
+  register: openvpn_crl
+
+- name: renew crl
+  when:
+    - openvpn_crl.expired | default('false') | bool
+  block:
+    - name: crl is expired
+      ansible.builtin.debug:
+        msg: "{{ openvpn_crl }}"
+
+    - name: renew CRL
+      easyrsa:
+        state: gen-crl
+        force: true
+        pki_dir: '{{ openvpn_easyrsa.directory }}/pki'
+      args:
+        chdir: '{{ openvpn_easyrsa.directory }}'
+        creates: '{{ openvpn_easyrsa.directory }}/pki/crl.pem'
+
 # ------------------------------------------------------------------------------------------------
 
 - name: copy CA certificate to openvpn server directory

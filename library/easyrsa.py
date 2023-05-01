@@ -160,7 +160,7 @@ class EasyRsa(object):
 
 def main():
 
-    args=dict(
+    args = dict(
         state=dict(
             default="init-pki",
             choices=["init-pki", "build-ca", "gen-crl", "gen-dh", "gen-req", "sign-req"]

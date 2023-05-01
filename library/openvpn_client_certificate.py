@@ -12,6 +12,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.bodsch.core.plugins.module_utils.directory import create_directory
 from ansible_collections.bodsch.core.plugins.module_utils.checksum import Checksum
 
+
 class OpenVPNClientCertificate(object):
     """
     Main Class to implement the Icinga2 API Client
@@ -29,7 +30,6 @@ class OpenVPNClientCertificate(object):
         self._username = module.params.get('username', None)
 
         self._chdir = module.params.get('chdir', None)
-        self._creates = module.params.get('creates', None)
 
         self._openvpn = module.get_bin_path('openvpn', True)
         self._easyrsa = module.get_bin_path('easyrsa', True)
@@ -48,18 +48,17 @@ class OpenVPNClientCertificate(object):
         """
           runner
         """
-        result = dict(
-            failed=False,
-            changed=False,
-            ansible_module_results="none"
-        )
-
         create_directory(self.checksum_directory)
 
         self.checksum = Checksum(self.module)
 
         if self._chdir:
             os.chdir(self._chdir)
+
+        if self.force:
+            self.module.log(msg="force mode ...")
+            if os.path.exists(self.checksum_directory):
+                os.remove(self.checksum_directory)
 
         checksums_valid, msg = self.__validate_checksums()
 
@@ -68,23 +67,6 @@ class OpenVPNClientCertificate(object):
                 changed = False,
                 message = msg
             )
-
-        if self.force and self._creates:
-            self.module.log(msg="force mode ...")
-            if os.path.exists(self._creates):
-                self.module.log(msg=f"remove {self._creates}")
-                os.remove(self._creates)
-
-        if self._creates:
-            if os.path.exists(self._creates):
-                message = "Nothing to do."
-                if self.state == "present":
-                    message = "The user request has already been created."
-
-                return dict(
-                    changed=False,
-                    message=message
-                )
 
         if self.state == "present":
             return self.__create_vpn_user()
@@ -193,9 +175,6 @@ class OpenVPNClientCertificate(object):
         """
         """
         msg = ""
-        req_valid = False
-        key_valid = False
-        crt_valid = False
 
         req_checksum = None
         req_old_checksum = None
@@ -225,24 +204,6 @@ class OpenVPNClientCertificate(object):
             self.checksum.write_checksum(self.crt_checksum_file, crt_checksum)
             crt_changed = False
 
-        self.module.log("-------------------------------------------------------------------------")
-        self.module.log(msg=f" - req {self.req_file} / {self.req_checksum_file}")
-        self.module.log(msg=f"   changed     : {req_changed}")
-        self.module.log(msg=f"   req checksum: {req_checksum}")
-        self.module.log(msg=f"   old checksum: {req_old_checksum}")
-
-        self.module.log(msg=f" - key {self.key_file} / {self.key_checksum_file}")
-        self.module.log(msg=f"   changed     : {key_changed}")
-        self.module.log(msg=f"   key checksum: {key_checksum}")
-        self.module.log(msg=f"   old checksum: {key_old_checksum}")
-
-        self.module.log(msg=f" - crt {self.crt_file} / {self.crt_checksum_file}")
-        self.module.log(msg=f"   changed     : {crt_changed}")
-        self.module.log(msg=f"   crt checksum: {crt_checksum}")
-        self.module.log(msg=f"   old checksum: {crt_old_checksum}")
-
-
-        # if (req_checksum is None or req_old_checksum is None) or (key_checksum is None or key_old_checksum is None) or (crt_checksum is None or crt_old_checksum is None):
         if req_changed or key_changed or crt_changed:
             _msg = []
 
@@ -259,62 +220,7 @@ class OpenVPNClientCertificate(object):
             valid = True
             msg = "All Files are valid."
 
-            # req_valid = (req_checksum == req_old_checksum)
-            # key_valid = (key_checksum == key_old_checksum)
-            # crt_valid = (crt_checksum == crt_old_checksum)
-            #
-            # valid = req_valid and key_valid and crt_valid
-
-        self.module.log(msg=f"  valid     : {valid}")
-        self.module.log("-------------------------------------------------------------------------")
         return valid, msg
-
-        # if os.path.exists(self.req_file):
-        #     with open(self.req_file, "r") as d:
-        #         req_data = d.read().rstrip('\n')
-        #         req_checksum = self.__checksum(req_data)
-        #
-        # if os.path.exists(self.req_checksum_file):
-        #     with open(self.req_checksum_file, "r") as f:
-        #         req_old_checksum = f.readlines()[0]
-        # else:
-        #     if req_checksum is not None:
-        #         req_old_checksum = self.__create_checksum_file(self.req_file, self.req_checksum_file)
-        #
-        # if os.path.exists(self.key_file):
-        #     with open(self.key_file, "r") as d:
-        #         key_data = d.read().rstrip('\n')
-        #         key_checksum = self.__checksum(key_data)
-        #
-        # if os.path.exists(self.key_checksum_file):
-        #     with open(self.key_checksum_file, "r") as f:
-        #         key_old_checksum = f.readlines()[0]
-        # else:
-        #     if crt_checksum is not None:
-        #         key_old_checksum = self.__create_checksum_file(self.key_file, self.key_checksum_file)
-        #
-        # if os.path.exists(self.crt_file):
-        #     with open(self.crt_file, "r") as d:
-        #         crt_data = d.read().rstrip('\n')
-        #         crt_checksum = self.__checksum(crt_data)
-        #
-        # if os.path.exists(self.crt_checksum_file):
-        #     with open(self.crt_checksum_file, "r") as f:
-        #         crt_old_checksum = f.readlines()[0]
-        # else:
-        #     if crt_checksum is not None:
-        #         crt_old_checksum = self.__create_checksum_file(self.crt_file, self.crt_checksum_file)
-        #
-        # if req_checksum is None or req_old_checksum is None or key_checksum is None or key_old_checksum is None or crt_checksum is None or crt_old_checksum is None:
-        #     valid = False
-        # else:
-        #     req_valid = (req_checksum == req_old_checksum)
-        #     key_valid = (key_checksum == key_old_checksum)
-        #     crt_valid = (crt_checksum == crt_old_checksum)
-        #
-        #     valid = req_valid and key_valid and crt_valid
-        #
-        # return valid
 
     def _exec(self, commands):
         """
@@ -336,7 +242,7 @@ class OpenVPNClientCertificate(object):
 def main():
     """
     """
-    args=dict(
+    args = dict(
         state=dict(
             default="present",
             choices=["present", "absent"]
@@ -351,9 +257,6 @@ def main():
             type="str"
         ),
         chdir=dict(
-            required=False
-        ),
-        creates=dict(
             required=False
         ),
     )
