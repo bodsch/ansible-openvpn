@@ -1,0 +1,34 @@
+---
+
+openvpn_type: server
+
+openvpn_persistent_pool:
+  - name: molecule
+    state: absent
+    static_ip: 10.8.3.10
+
+openvpn_server:
+  user: "{{ openvpn_owner }}"
+  group: "{{ openvpn_group }}"
+
+openvpn_subnet:
+  ip: 10.8.3.0
+  netmask: 255.255.255.0
+
+openvpn_pushed_routes:
+  - net: 10.8.3.0
+    netmask: 255.255.255.0
+
+openvpn_push:
+  routes:
+    - net: 10.8.3.0
+      netmask: 255.255.255.0
+  domains:
+    - matrix.lan
+    - vpn.lan
+  dns:
+    - 127.0.0.5
+  sndbuf: 393216
+  rcvbuf: 393216
+
+...

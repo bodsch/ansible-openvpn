@@ -45,10 +45,6 @@
     openvpn_easyrsa: "{{ openvpn_defaults_easyrsa | combine(openvpn_easyrsa, recursive=True) }}"
     openvpn_certificate: "{{ openvpn_defaults_certificate | combine(openvpn_certificate, recursive=True) }}"
     openvpn_server: "{{ openvpn_defaults_server | combine(openvpn_server, recursive=True) }}"
-    openvpn_dns: "{{ openvpn_defaults_dns | combine(openvpn_dns, recursive=True) }}"
-
-# - name: define persistent_pool
-#   set_fact:
-#     openvpn_persistent_pool: "{{ openvpn_mobile_clients | persistent_pool }}"
+    openvpn_push: "{{ openvpn_defaults_push | combine(openvpn_push, recursive=True) }}"
 
 ...

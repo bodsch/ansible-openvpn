@@ -83,9 +83,12 @@ openvpn_defaults_server:
   user: nobody
   group: nogroup
 
-openvpn_defaults_dns:
-  push: false
-  server: ''
-  domain: ''
+openvpn_defaults_push:
+  routes: []
+  route_gateway: ""
+  domains: []
+  dns: []
+  sndbuf: 393216
+  rcvbuf: 393216
 
 ...

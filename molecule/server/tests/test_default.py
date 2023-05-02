@@ -25,32 +25,31 @@ def pp_json(json_thing, sort=True, indents=2):
 
 
 def base_directory():
-    """
-    """
+    """ ... """
     cwd = os.getcwd()
 
-    if 'group_vars' in os.listdir(cwd):
+    if ('group_vars' in os.listdir(cwd)):
         directory = "../.."
         molecule_directory = "."
     else:
         directory = "."
-        molecule_directory = f"molecule/{os.environ.get('MOLECULE_SCENARIO_NAME')}"
+        molecule_directory = "molecule/{}".format(os.environ.get('MOLECULE_SCENARIO_NAME'))
 
     return directory, molecule_directory
 
 
 def read_ansible_yaml(file_name, role_name):
-    """
-    """
+    ext_arr = ["yml", "yaml"]
+
     read_file = None
 
-    for e in ["yml", "yaml"]:
+    for e in ext_arr:
         test_file = "{}.{}".format(file_name, e)
         if os.path.isfile(test_file):
             read_file = test_file
             break
 
-    return f"file={read_file} name={role_name}"
+    return "file={} name={}".format(read_file, role_name)
 
 
 def merge_two_dicts(x, y):
@@ -153,21 +152,21 @@ def test_service(host, get_vars):
 def test_open_port(host, get_vars):
     """
     """
-    # listening = host.socket.get_listening_sockets()
-    # interfaces = host.interface.names()
-    # eth = []
-    #
-    # if "eth0" in interfaces:
-    #     eth = host.interface("eth0").addresses
-    #
-    # for i in listening:
-    #     print(i)
-    #
-    # for i in interfaces:
-    #     print(i)
-    #
-    # for i in eth:
-    #     print(i)
+    listening = host.socket.get_listening_sockets()
+    interfaces = host.interface.names()
+    eth = []
+
+    if "eth0" in interfaces:
+        eth = host.interface("eth0").addresses
+
+    for i in listening:
+        print(i)
+
+    for i in interfaces:
+        print(i)
+
+    for i in eth:
+        print(i)
 
     # pp_json(get_vars)
 
@@ -175,14 +174,7 @@ def test_open_port(host, get_vars):
     _configure = get_vars.get("openvpn_server")
     data = merge_two_dicts(_defaults, _configure)
 
-    pp_json(data)
-
-    proto = data.get("proto")
     port = data.get("port")
-    listen_ip = data.get("listen_ip", None)
 
-    if not listen_ip:
-        listen_ip = "0.0.0.0"
-
-    service = host.socket(f"{proto}://{listen_ip}:{port}")
+    service = host.socket("udp://{0}:{1}".format("0.0.0.0", port))
     assert service.is_listening
