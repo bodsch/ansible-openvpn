@@ -251,6 +251,16 @@ openvpn_subnet:
 
 ### `openvpn_push`
 
+```yaml
+openvpn_push:
+  routes: []
+  route_gateway: ""
+  domains: []
+  dns: []
+  sndbuf: 393216
+  rcvbuf: 393216
+```
+
 #### `routes`
 
 Push routes to the client to allow it to reach other private subnets behind the server.  

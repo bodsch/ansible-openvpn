@@ -37,22 +37,28 @@ topology        subnet
       openvpn_subnet.netmask is defined and
       openvpn_subnet.netmask | string | length > 0 %}
 server          {{ openvpn_subnet.ip }} {{ openvpn_subnet.netmask }}
-{% else %}
-# server # NO NETWORK DEFINED
-{% endif %}
 
 ifconfig-pool-persist ipp.txt
+{% else %}
+# NO SERVER NETWORK HAS BEEN DEFINED!
+{% endif %}
 {% if openvpn_push is defined and
       openvpn_push | bodsch.core.type == "dict" and
       openvpn_push | count > 0 %}
-
+  {% set _push_route_gateway = openvpn_push.route_gateway | default('') %}
   {% set _push_routes = openvpn_push.routes | default([]) %}
   {% set _push_dns = openvpn_push.dns | default([]) %}
   {% set _push_domains = openvpn_push.domains | default([]) %}
+  {% set _push_sndbuf = openvpn_push.sndbuf | default('') %}
+  {% set _push_rcvbuf = openvpn_push.rcvbuf | default('') %}
+
   {% if _push_routes | count > 0 %}
     {% for e in _push_routes %}
-push            "route {{ e.net }} {{ e.netmask }}"
+push            "route {{ e.net }} {{ e.netmask }} {{ e.gateway | default('') }}"
     {% endfor %}
+  {% endif %}
+  {% if _push_route_gateway | string | length > 0 %}
+push            "redirect-gateway {{ _push_route_gateway }}"
   {% endif %}
   {% if _push_dns | count > 0 %}
     {% for e in _push_dns %}
@@ -64,12 +70,16 @@ push            "dhcp-option DNS {{ e }}"
 push            "dhcp-option DOMAIN {{ e }}"
     {% endfor %}
   {% endif %}
+  {% if _push_sndbuf | string | length > 0 %}
+push            "sndbuf {{ _push_sndbuf }}"
+  {% endif %}
+  {% if _push_rcvbuf | string | length > 0 %}
+push            "rcvbuf {{ _push_rcvbuf }}"
+  {% endif %}
 {% endif %}
 
 sndbuf          393216
 rcvbuf          393216
-push            "sndbuf 393216"
-push            "rcvbuf 393216"
 
 tun-mtu         {{ openvpn_mtu | default('1500') }}
 mssfix          1360

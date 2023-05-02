@@ -7,7 +7,7 @@ openvpn_diffie_hellman_keysize: 2048
 openvpn_mtu: 1500
 
 # server or client
-openvpn_type: ""
+openvpn_type: server
 
 openvpn_service:
   state: started
