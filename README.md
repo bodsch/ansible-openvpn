@@ -35,6 +35,11 @@ openvpn_directory: /etc/openvpn
 openvpn_diffie_hellman_keysize: 2048
 
 openvpn_mtu: 1500
+openvpn_mssfix: 1360
+
+openvpn_keepalive:
+  interval: 10
+  timeout: 120
 
 # server or client
 openvpn_type: ""
@@ -68,13 +73,18 @@ openvpn_iptables:
 
 openvpn_push:
   routes: []
-  domains: []
-  dns: []
+  route_gateway: ""
+  dhcp_options:
+    domains: []
+    dns: []
+  sndbuf: 393216
+  rcvbuf: 393216
 ```
 
 ### `openvpn_systemd`
 
-If OpenVPN has a dependency on another service (e.g. on sshd), then it should be possible here to force the service into a corresponding dependency.
+If OpenVPN has a dependency on another service (e.g. on sshd), then it should be possible 
+here to force the service into a corresponding dependency.  
 (Assuming that I have understood the systemd documentation correctly!)
 
 ```yaml
@@ -92,9 +102,8 @@ openvpn_systemd:
 - `5` and `6` can help to debug connection problems
 - `9` is extremely verbose
 
-`mute` Silence repeating messages.
-At most 20 sequential messages of the same message category will be output to
-the log.
+`mute` Silence repeating messages.  
+At most 20 sequential messages of the same message category will be output to the log.
 
 
 **example**
@@ -110,6 +119,16 @@ openvpn_logging:
 
 ### `openvpn_easyrsa`
 
+The best way to create a PKI for OpenVPN is to separate your CA duty from each server & client.  
+The CA should ideally be on a secure environment (whatever that means to you.)  
+**Loss/theft of the CA key destroys the security of the entire PKI.**
+
+The crl file has a runtime of 180 days (default).  
+After these 180 days have expired, the VPN clients will no longer establish a connection to the server!  
+For this reason I have integrated `crl_warn`.  
+If `expired` is configured with `true`, each time the role is run, it checks whether the crl file is still valid.  
+If the runtime is less than `expire_in_days`, the crl file is automatically renewed.
+
 **example**
 ```yaml
 openvpn_easyrsa:
@@ -119,6 +138,18 @@ openvpn_easyrsa:
   ca_expire: 3650
   cert_expire: 3650
   crl_days: 180
+  crl_warn:
+    expired: true
+    expire_in_days: 20
+  x509_dn_mode: cn_only
+  # Choices for crypto alg are: (each in lower-case)
+  #  * rsa
+  #  * ec
+  #  * ed
+  crypto_mode: ec
+  rsa_curve: secp384r1
+  # sha256, sha224, sha384, sha512
+  digest: sha512
 ```
 
 ### `openvpn_certificate`
@@ -138,8 +169,7 @@ openvpn_certificate:
 
 ### `openvpn_server`
 
-`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges
-after initialization.
+`user` / `group` It's a good idea to reduce the OpenVPN daemon's privileges after initialization.
 
 `tls_auth` For extra security beyond that provided by SSL/TLS, create an
 "HMAC firewall" to help block DoS attacks and UDP port flooding.
@@ -175,7 +205,7 @@ openvpn_server:
 
 The generated OVPN files for mobile clients are stored on the VPN server under `/root/vpn-configs`.
 
-You can also transfer them to the Ansible controller.
+You can also transfer them to the Ansible controller.  
 To do this, `openvpn_config_save_dir` must be configured accordingly.
 
 `tls_auth` is recommended when is activated in `openvpn_server`!
@@ -251,12 +281,14 @@ openvpn_subnet:
 
 ### `openvpn_push`
 
+Configuration options that can be pushed to the VPN client.
+
 ```yaml
 openvpn_push:
   routes: []
-  route_gateway: ""
-  domains: []
-  dns: []
+  dhcp_options:
+    domains: []
+    dns: []
   sndbuf: 393216
   rcvbuf: 393216
 ```
@@ -277,24 +309,26 @@ openvpn_push:
       netmask: 255.255.255.0
 ```
 
-#### `dns`
+#### `dhcp_options.dns`
 
 **example**
 ```yaml
 openvpn_push:
-  dns:
-    - 10.15.0.2
-    - 10.15.0.5
+  dhcp_options:
+    dns:
+      - 10.15.0.2
+      - 10.15.0.5
 ```
 
-#### `dns`
+#### `dhcp_options.domains`
 
 **example**
 ```yaml
 openvpn_push:
-  domains:
-    - matrix.vpn
-    - customer.vpn
+  dhcp_options:
+    domains:
+      - matrix.vpn
+      - customer.vpn
 ```
 
 ### `openvpn_iptables`
@@ -304,8 +338,6 @@ openvpn_push:
 openvpn_iptables:
   enabled: false
 ```
-
-
 
 ### example configuration for a openvpn server with 2 clients
 
@@ -328,9 +360,10 @@ openvpn_subnet:
   ip: 172.25.0.0
   netmask: 255.255.255.0
 
-openvpn_pushed_routes:
-  - net: 172.25.0.0
-    netmask: 255.255.255.0
+openvpn_push:
+  routes:
+    - net: 172.25.0.0
+      netmask: 255.255.255.0
 ```
 
 #### example configuration for static client 1

@@ -1,4 +1,3 @@
-ansible-compat
 ansible-lint
 docker
 dnspython

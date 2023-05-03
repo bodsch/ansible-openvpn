@@ -15,10 +15,6 @@ openvpn_subnet:
   ip: 10.8.3.0
   netmask: 255.255.255.0
 
-openvpn_pushed_routes:
-  - net: 10.8.3.0
-    netmask: 255.255.255.0
-
 openvpn_push:
   routes:
     - net: 10.8.3.0

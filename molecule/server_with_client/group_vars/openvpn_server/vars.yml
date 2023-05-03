@@ -29,9 +29,19 @@ openvpn_subnet:
   ip: 10.8.3.0
   netmask: 255.255.255.0
 
-openvpn_pushed_routes:
-  - net: 10.8.3.0
-    netmask: 255.255.255.0
+openvpn_push:
+  routes:
+    - net: 10.8.3.0
+      netmask: 255.255.255.0
+      gateway: 10.8.3.1
+  dhcp_options:
+    domains:
+      - matrix.lan
+      - vpn.lan
+    dns:
+      - 127.0.0.5
+  sndbuf: 393216
+  rcvbuf: 393216
 
 openvpn_iptables:
   enabled: true

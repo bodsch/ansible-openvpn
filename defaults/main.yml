@@ -5,9 +5,14 @@ openvpn_directory: /etc/openvpn
 openvpn_diffie_hellman_keysize: 2048
 
 openvpn_mtu: 1500
+openvpn_mssfix: 1360
+
+openvpn_keepalive:
+  interval: 10
+  timeout: 120
 
 # server or client
-openvpn_type: server
+openvpn_type: ""
 
 openvpn_service:
   state: started
@@ -34,6 +39,15 @@ openvpn_easyrsa: {}
 #   crl_warn:
 #     expired: true
 #     expire_in_days: 20
+#   x509_dn_mode: cn_only
+#   # Choices for crypto alg are: (each in lower-case)
+#   #  * rsa
+#   #  * ec
+#   #  * ed
+#   crypto_mode: ec
+#   rsa_curve: secp384r1
+#   # sha256, sha224, sha384, sha512
+#   digest: sha512
 
 openvpn_certificate: {}
 #   req_country: DE
@@ -94,7 +108,11 @@ openvpn_push:
   routes: []
   #  - net: 172.25.220.0
   #    netmask: 255.255.255.0
-  domains: []
-  dns: []
+  #    gateway: ... (optional)
+  dhcp_options:
+    domains: []
+    dns: []
+  # sndbuf: 393216
+  # rcvbuf: 393216
 
 ...

@@ -21,9 +21,9 @@ fi
 # this is taken to be the directory you are currently in.
 
 #set_var EASYRSA	"$PWD"
-set_var EASYRSA	          "{{ openvpn_easyrsa.directory }}"
+set_var EASYRSA	              "{{ openvpn_easyrsa.directory }}"
 
-set_var EASYRSA_OPENSSL	"openssl"
+set_var EASYRSA_OPENSSL       "openssl"
 
 
 # Edit this variable to point to your soon-to-be-created key directory.
@@ -31,7 +31,7 @@ set_var EASYRSA_OPENSSL	"openssl"
 # WARNING: init-pki will do a rm -rf on this directory so make sure you define
 # it correctly! (Interactive mode will prompt before acting.)
 
-set_var EASYRSA_PKI		"$EASYRSA/pki"
+set_var EASYRSA_PKI           "$EASYRSA/pki"
 
 # Define X509 DN mode.
 # This is used to adjust what elements are included in the Subject field as the DN
@@ -42,7 +42,7 @@ set_var EASYRSA_PKI		"$EASYRSA/pki"
 #   cn_only  - use just a CN value
 #   org      - use the "traditional" Country/Province/City/Org/OU/email/CN format
 
-set_var EASYRSA_DN      "{{ openvpn_easyrsa.x509_dn_mode }}"
+set_var EASYRSA_DN            "{{ openvpn_easyrsa.x509_dn_mode }}"
 
 # Organizational fields (used with 'org' mode and ignored in 'cn_only' mode.)
 # These are the default values for fields which will be placed in the
@@ -50,12 +50,12 @@ set_var EASYRSA_DN      "{{ openvpn_easyrsa.x509_dn_mode }}"
 # you may omit any specific field by typing the "." symbol (not valid for
 # email.)
 
-set_var EASYRSA_REQ_COUNTRY  "{{ openvpn_certificate.req_country }}"
-set_var EASYRSA_REQ_PROVINCE "{{ openvpn_certificate.req_province }}"
-set_var EASYRSA_REQ_CITY     "{{ openvpn_certificate.req_city }}"
-set_var EASYRSA_REQ_ORG      "{{ openvpn_certificate.req_org }}"
-set_var EASYRSA_REQ_EMAIL    "{{ openvpn_certificate.req_email }}"
-set_var EASYRSA_REQ_OU       "{{ openvpn_certificate.req_ou }}"
+set_var EASYRSA_REQ_COUNTRY   "{{ openvpn_certificate.req_country }}"
+set_var EASYRSA_REQ_PROVINCE  "{{ openvpn_certificate.req_province }}"
+set_var EASYRSA_REQ_CITY      "{{ openvpn_certificate.req_city }}"
+set_var EASYRSA_REQ_ORG       "{{ openvpn_certificate.req_org }}"
+set_var EASYRSA_REQ_EMAIL     "{{ openvpn_certificate.req_email }}"
+set_var EASYRSA_REQ_OU        "{{ openvpn_certificate.req_ou }}"
 
 # Choose a size in bits for your keypairs. The recommended value is 2048.  Using
 # 2048-bit keys is considered more than sufficient for many years into the
@@ -71,9 +71,9 @@ set_var EASYRSA_KEY_SIZE      {{ openvpn_easyrsa.key_size }}
 #  * rsa
 #  * ec
 #  * ed
-
+{% if openvpn_easyrsa.crypto_mode in ["rsa","ec","ed"] %}
 set_var EASYRSA_ALGO          "{{ openvpn_easyrsa.crypto_mode }}"
-
+{% endif %}
 # Define the named curve, used in ec mode only:
 {% if openvpn_easyrsa.crypto_mode == "ec" %}
 set_var EASYRSA_CURVE         "{{ openvpn_easyrsa.rsa_curve }}"
@@ -159,8 +159,11 @@ set_var EASYRSA_SSL_CONF      "$EASYRSA/{{ openvpn_easyrsa.openssl_config }}"
 # Cryptographic digest to use.
 # Do not change this default unless you understand the security implications.
 # Valid choices include: md5, sha1, sha256, sha224, sha384, sha512
-
-set_var EASYRSA_DIGEST        "{{ openvpn_easyrsa.digest }}"
+{% set rsa_digest = "sha512" %}
+{% if openvpn_easyrsa.digest in ["sha256", "sha224", "sha384", "sha512"] %}
+  {% set rsa_digest = openvpn_easyrsa.digest %}
+{% endif %}
+set_var EASYRSA_DIGEST        "{{ rsa_digest }}"
 
 # Batch mode. Leave this disabled unless you intend to call Easy-RSA explicitly
 # in batch mode without any user input, confirmation on dangerous operations,

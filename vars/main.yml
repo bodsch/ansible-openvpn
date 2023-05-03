@@ -46,7 +46,7 @@ openvpn_defaults_easyrsa:
   #  * rsa
   #  * ec
   #  * ed
-  crypto_mode: rsa
+  crypto_mode: ec
   rsa_curve: secp384r1
   digest: sha512
 
@@ -86,8 +86,9 @@ openvpn_defaults_server:
 openvpn_defaults_push:
   routes: []
   route_gateway: ""
-  domains: []
-  dns: []
+  dhcp_options:
+    domains: []
+    dns: []
   sndbuf: 393216
   rcvbuf: 393216
 

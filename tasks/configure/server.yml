@@ -2,8 +2,8 @@
 
 - name: create openvpn server directory
   ansible.builtin.file:
-    path: '{{ openvpn_directory }}/server'
     state: directory
+    path: '{{ openvpn_directory }}/server'
     owner: "{{ openvpn_owner }}"
     group: "{{ openvpn_group }}"
     mode: 0755
@@ -19,8 +19,8 @@
     group: "{{ openvpn_group }}"
     mode: 0755
   tags:
-    - setup
     - openvpn
+    - openvpn_setup
 
 # ------------------------------------------------------------------------------------------------
 
@@ -31,6 +31,7 @@
     mode: 0644
     owner: root
     group: root
+    backup: true
 
 - name: create openssl-easyrsa.cnf
   ansible.builtin.file:
