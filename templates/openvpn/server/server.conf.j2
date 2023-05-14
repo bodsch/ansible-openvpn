@@ -111,9 +111,15 @@ allow-compression yes
 #}
 max-clients     {{ openvpn_server.max_clients }}
 
+{% if openvpn_server.user is defined and
+      openvpn_server.user | string | length > 0 and
+      openvpn_server.group is defined and
+      openvpn_server.group | string | length > 0 and
+      openvpn_version.version is version('2.6.0', '<') %}
 user            {{ openvpn_server.user | default('nobody') }}
 group           {{ openvpn_server.group | default('nobody') }}
 
+{% endif %}
 {% if openvpn_logging.append | default('false') | bool %}
 log-append      {{ openvpn_logging.directory }}/{{ openvpn_logging.file }}
 {% else %}

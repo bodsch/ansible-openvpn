@@ -8,6 +8,19 @@
     - openvpn
     - openvpn_install
 
+- name: get openvpn _version
+  openvpn_version:
+  register: openvpn_version
+
+- name: create custom fact file
+  bodsch.core.facts:
+    name: openvpn
+    facts:
+      version: "{{ openvpn_version.version }}"
+
+- name: gathering facts now
+  ansible.builtin.setup:
+
 - name: handle easy-rsa
   when:
     - ansible_os_family | lower == "debian"

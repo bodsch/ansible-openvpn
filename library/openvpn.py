@@ -244,40 +244,41 @@ class OpenVPN(object):
 
 def main():
 
-    module = AnsibleModule(
-        argument_spec=dict(
-            state=dict(
-                default="genkey",
-                choices=["genkey", "create_user"]
-            ),
-            force=dict(
-                required=False,
-                default=False,
-                type="bool"
-            ),
-            secret=dict(
-                required=True,
-                type="str"
-            ),
-            username=dict(
-                required=False,
-                type="str"
-            ),
-            easyrsa_directory=dict(
-                required=False,
-                type="str"
-            ),
-            destination_directory=dict(
-                required=False,
-                type="str"
-            ),
-            chdir=dict(
-                required=False
-            ),
-            creates=dict(
-                required=False
-            ),
+    args = dict(
+        state=dict(
+            default="genkey",
+            choices=["genkey", "create_user"]
         ),
+        force=dict(
+            required=False,
+            default=False,
+            type="bool"
+        ),
+        secret=dict(
+            required=True,
+            type="str"
+        ),
+        username=dict(
+            required=False,
+            type="str"
+        ),
+        easyrsa_directory=dict(
+            required=False,
+            type="str"
+        ),
+        destination_directory=dict(
+            required=False,
+            type="str"
+        ),
+        chdir=dict(
+            required=False
+        ),
+        creates=dict(
+            required=False
+        ),
+    )
+    module = AnsibleModule(
+        argument_spec=args,
         supports_check_mode=False,
     )
 

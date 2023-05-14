@@ -21,7 +21,7 @@ platforms:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     capabilities:
-      - SYS_TIME
+      - ALL
 
 provisioner:
   name: ansible
