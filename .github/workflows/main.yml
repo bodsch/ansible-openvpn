@@ -25,8 +25,7 @@ jobs:
           - archlinux:latest
           - artixlinux:latest
         ansible-version:
-          - '5.1'
-          - '6.1'
+          - '6.7'
         scenario:
           - server_with_client
 
@@ -68,9 +67,11 @@ jobs:
       matrix:
         image:
           - debian:11
+          - debian:12
+          - ubuntu:20.04
+          - ubuntu:22.04
         ansible-version:
-          - '5.1'
-          - '6.1'
+          - '6.7'
         scenario:
           - server_with_client
 

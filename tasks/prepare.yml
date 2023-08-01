@@ -26,10 +26,6 @@
       ansible_virtualization_role | default('host') == 'guest' and
       ansible_virtualization_type | default('none') == 'docker' }}"
 
-- name: update package cache
-  ansible.builtin.package:
-    update_cache: true
-
 - name: install dependencies
   ansible.builtin.package:
     name: "{{ openvpn_dependencies }}"

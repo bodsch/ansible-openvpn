@@ -16,6 +16,15 @@ galaxy_info:
       versions:
         # 11
         - bullseye
+        # 12
+        - bookworm
+    - name: Ubuntu
+      versions:
+        # 20.04 LTS (Focal Fossa)
+        - focal
+        # 22.04 LTS (Jammy Jellyfish)
+        - jammy
+
   galaxy_tags:
     - development
     - system

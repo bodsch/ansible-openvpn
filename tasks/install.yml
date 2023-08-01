@@ -37,6 +37,28 @@
         src: "{{ openvpn_easyrsa.directory }}/easyrsa"
         dest: /bin/easyrsa
 
+    - name: create pki directory structure
+      when:
+        - ansible_distribution | lower == "ubuntu"
+      block:
+        - name: create pki directory
+          ansible.builtin.file:
+            state: directory
+            path: "{{ openvpn_easyrsa.directory }}/pki"
+            mode: 0770
+
+        - name: create pki directory structure
+          ansible.builtin.file:
+            state: directory
+            path: "{{ openvpn_easyrsa.directory }}/pki/{{ item }}"
+            mode: 0700
+          loop:
+            - certs_by_serial
+            - issued
+            - private
+            - reqs
+            - revoked
+
 - name: openrc
   when:
     - ansible_service_mgr | lower == "openrc"
