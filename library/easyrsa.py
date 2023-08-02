@@ -146,11 +146,14 @@ class EasyRsa(object):
         """
           execute shell program
         """
-        self.module.log(msg=f"  commands: '{commands}'")
+        # self.module.log(msg=f"  commands: '{commands}'")
         rc, out, err = self.module.run_command(commands, check_rc=True)
-        # self.module.log(msg="  rc : '{}'".format(rc))
-        # self.module.log(msg="  out: '{}'".format(out))
-        # self.module.log(msg="  err: '{}'".format(err))
+
+        if int(rc) != 0:
+            self.module.log(msg=f"  rc : '{rc}'")
+            self.module.log(msg=f"  out: '{out}'")
+            self.module.log(msg=f"  err: '{err}'")
+
         return rc, out
 
 

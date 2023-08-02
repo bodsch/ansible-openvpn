@@ -5,8 +5,6 @@
 
 from __future__ import absolute_import, division, print_function
 import re
-# import os
-# import sys
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -27,11 +25,10 @@ class OpenVPN(object):
         """
           runner
         """
-        result = dict(
-            failed=False,
-            changed=False,
-            version=None
-        )
+        _failed = True
+        _version = "unknown"
+        _stdout = ""
+        _stdout_lines = []
 
         args = []
 
@@ -40,28 +37,36 @@ class OpenVPN(object):
 
         rc, out = self._exec(args)
 
-        result['stdout'] = f"{out.rstrip()}"
-
-        if rc == 0:
+        if "OpenVPN" in out:
             pattern = re.compile(r"OpenVPN (?P<version>[0-9]+\.[0-9]+\.[0-9]+).*", re.MULTILINE)
             found = re.search(pattern, out.rstrip())
 
             if found:
-                result['version'] = found.group('version')
+                _version = found.group('version')
+                _failed = False
         else:
-            result['failed'] = True
+            _failed = True
 
-        return result
+        _stdout = f"{out.rstrip()}"
+        _stdout_lines = _stdout.split("\n")
+
+        return dict(
+            stdout = _stdout,
+            stdout_lines = _stdout_lines,
+            failed = _failed,
+            version = _version
+        )
 
     def _exec(self, commands):
         """
         """
-        # self.module.log(msg="  commands: '{}'".format(commands))
         rc, out, err = self.module.run_command(commands, check_rc=False)
+
         if int(rc) != 0:
             self.module.log(msg=f"  rc : '{rc}'")
             self.module.log(msg=f"  out: '{out}'")
             self.module.log(msg=f"  err: '{err}'")
+
         return rc, out
 
 

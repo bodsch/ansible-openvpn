@@ -59,6 +59,14 @@
             - reqs
             - revoked
 
+        - name: create symlink for x509-types
+          ansible.builtin.file:
+            state: link
+            src: "{{ openvpn_easyrsa.directory }}/x509-types"
+            dest: /usr/bin/x509-types
+          when:
+            - ansible_distribution_major_version == "20"
+
 - name: openrc
   when:
     - ansible_service_mgr | lower == "openrc"

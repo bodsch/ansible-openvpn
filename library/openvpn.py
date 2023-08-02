@@ -6,7 +6,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 import sys
-
+from ansible.module_utils import distro
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -33,6 +33,8 @@ class OpenVPN(object):
 
         self._openvpn = module.get_bin_path('openvpn', True)
         self._easyrsa = module.get_bin_path('easyrsa', True)
+
+        (self.distribution, self.version, self.codename) = distro.linux_distribution(full_distribution_name=False)
 
     def run(self):
         """
@@ -69,7 +71,13 @@ class OpenVPN(object):
         if self.state == "genkey":
             args.append(self._openvpn)
             args.append("--genkey")
-            args.append("secret")
+            if self.distribution.lower() == "ubuntu" and self.version == "20.04":
+                # OpenVPN 2.5.5
+                # ubuntu 20.04 wants `--secret`
+                args.append("--secret")
+            else:
+                # WARNING: Using --genkey --secret filename is DEPRECATED.  Use --genkey secret filename instead.
+                args.append("secret")
             args.append(self._secret)
 
         if self.state == "create_user":
@@ -229,11 +237,13 @@ class OpenVPN(object):
         """
           execute shell program
         """
-        self.module.log(msg="  commands: '{}'".format(commands))
         rc, out, err = self.module.run_command(commands, check_rc=True)
-        self.module.log(msg="  rc : '{}'".format(rc))
-        self.module.log(msg="  out: '{}'".format(out))
-        self.module.log(msg="  err: '{}'".format(err))
+
+        if int(rc) != 0:
+            self.module.log(msg=f"  rc : '{rc}'")
+            self.module.log(msg=f"  out: '{out}'")
+            self.module.log(msg=f"  err: '{err}'")
+
         return rc, out
 
 
