@@ -417,6 +417,7 @@ openvpn_mobile_clients:
       enabled: true
 ```
 
+---
 
 ## Contribution
 
@@ -428,6 +429,7 @@ The `master` Branch is my *Working Horse* includes the "latest, hot shit" and ca
 
 If you want to use something stable, please use a [Tagged Version](https://github.com/bodsch/ansible-openvpn/tags)!
 
+---
 
 ## Author
 

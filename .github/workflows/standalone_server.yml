@@ -23,7 +23,9 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - debian:11
+          - debian:12
+        python_version:
+          - "3.11.3"
         ansible-version:
           - '6.7'
         scenario:
@@ -39,7 +41,7 @@ jobs:
       - name: 🐍 set up python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: "${{ matrix.python_version }}"
 
       - name: install dependencies
         run: |
