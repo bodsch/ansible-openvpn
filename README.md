@@ -2,6 +2,13 @@
 
 Ansible role to install and configure openvpn server.
 
+---
+
+> Further development of this Ansible role has been moved to Collection [bodsch.core](https://github.com/bodsch/ansible-collection-core).
+> **This repository will therefore no longer be actively maintained.**
+
+---
+
 
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bodsch/ansible-openvpn/main.yml?branch=main)][ci]
 [![GitHub issues](https://img.shields.io/github/issues/bodsch/ansible-openvpn)][issues]
